@@ -12,6 +12,26 @@
     ]
   },
   {
+    "sha": "99e771a11d5ae49526c2a72d1b95eae1673d217e",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-12-19T17:22:39+09:00",
+    "subject": "compiler: Fix typo in `abstract_invoke` (#60414)",
+    "pr_number": "60414",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl"
+    ]
+  },
+  {
+    "sha": "d16c5473898c3539d3740fc62305d5257d6831ab",
+    "author": "Sam Schweigel",
+    "date": "2025-12-09T11:17:26-08:00",
+    "subject": "Proactively compile lambdas when the type of the closure is known (#60259)",
+    "pr_number": "60259",
+    "files": [
+      "Compiler/src/typeinfer.jl"
+    ]
+  },
+  {
     "sha": "0c2681505e06fd4f55171b1a78f56ac82a4e2b83",
     "author": "Jameson Nash",
     "date": "2025-12-06T14:33:23-05:00",
@@ -48,6 +68,21 @@
       "src/gc-heap-snapshot.cpp",
       "src/processor.cpp",
       "src/runtime_ccall.cpp"
+    ]
+  },
+  {
+    "sha": "53d2c5b7dce8214ca93fe7779ef840cfcea029ee",
+    "author": "Keno Fischer",
+    "date": "2025-11-25T03:25:36-05:00",
+    "subject": "Use jlutilities mechanism for external package required in test (#60232)",
+    "pr_number": "60232",
+    "files": [
+      "Compiler/extras/CompilerDevTools/test/testpkg.jl",
+      "JuliaLowering/Manifest.toml",
+      "deps/jlutilities/objectfile/Manifest.toml",
+      "deps/jlutilities/objectfile/Project.toml",
+      "test/runtests.jl",
+      "test/stdlib_dependencies.jl"
     ]
   },
   {
@@ -97,6 +132,17 @@
     "pr_number": "60079",
     "files": [
       "src/aotcompile.cpp"
+    ]
+  },
+  {
+    "sha": "f1e0d1c780983250fd02daca19de331ad0a3cb5a",
+    "author": "Oscar Smith",
+    "date": "2025-11-01T08:32:08-04:00",
+    "subject": "fix `pointerarith_tfunc` for Const ptr (#60011)",
+    "pr_number": "60011",
+    "files": [
+      "Compiler/src/tfuncs.jl",
+      "Compiler/test/effects.jl"
     ]
   },
   {
@@ -150,6 +196,19 @@
       "src/llvm-final-gc-lowering.cpp",
       "src/llvm-propagate-addrspaces.cpp",
       "src/llvmcalltest.cpp"
+    ]
+  },
+  {
+    "sha": "595757964be1e190e8fe474b74df7a60b315e566",
+    "author": "Andy Dienes",
+    "date": "2025-10-27T13:05:01-04:00",
+    "subject": "deprecate `merge(::Callable ..)` in favor of `mergewith` (#59775)",
+    "pr_number": "59775",
+    "files": [
+      "Compiler/test/inference.jl",
+      "NEWS.md",
+      "base/deprecated.jl",
+      "test/dict.jl"
     ]
   },
   {
@@ -209,6 +268,16 @@
     ]
   },
   {
+    "sha": "c6091de0942ab75c9da18bbf1b49db1fb760e353",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-10-21T02:57:45+09:00",
+    "subject": "absint: allow ad-hoc cancellation of concrete evaluation (#59908)",
+    "pr_number": "59908",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl"
+    ]
+  },
+  {
     "sha": "c1353acc1008548cecd5ed51ef605df1d7003a43",
     "author": "Jameson Nash",
     "date": "2025-10-18T20:55:48-04:00",
@@ -248,6 +317,20 @@
     ]
   },
   {
+    "sha": "298f8ad81dffebef3fd34f4153f33b366f2583f4",
+    "author": "Jameson Nash",
+    "date": "2025-10-17T15:12:02-04:00",
+    "subject": "Libdl: Add documentation for LazyLibrary and friends (#59841)",
+    "pr_number": "59841",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "base/libdl.jl",
+      "doc/src/manual/calling-c-and-fortran-code.md",
+      "stdlib/Libdl/docs/src/index.md",
+      "stdlib/Libdl/src/Libdl.jl"
+    ]
+  },
+  {
     "sha": "3a50d6fb4b384959666c52a9105ae845c5de987a",
     "author": "Jameson Nash",
     "date": "2025-10-15T10:03:39-04:00",
@@ -259,6 +342,17 @@
       "src/signals-unix.c",
       "src/signals-win.c",
       "src/stackwalk.c"
+    ]
+  },
+  {
+    "sha": "a92e12a442024fb634fd9c6bb3ba66e94cadd397",
+    "author": "jumerckx",
+    "date": "2025-10-14T16:05:47+02:00",
+    "subject": "use stmt instead of `Instruction` in `populate_def_use_map!` (#56201)",
+    "pr_number": "56201",
+    "files": [
+      "Compiler/src/optimize.jl",
+      "Compiler/src/ssair/irinterp.jl"
     ]
   },
   {
@@ -377,6 +471,29 @@
     ]
   },
   {
+    "sha": "ffad80ccb1db395a48a3a54990393e51db9b1eef",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-10-03T02:28:39+09:00",
+    "subject": "compiler: eliminate most of unused variables in the compiler (#59202)",
+    "pr_number": "59202",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "Compiler/src/bootstrap.jl",
+      "Compiler/src/inferenceresult.jl",
+      "Compiler/src/inferencestate.jl",
+      "Compiler/src/optimize.jl",
+      "Compiler/src/stmtinfo.jl",
+      "Compiler/src/tfuncs.jl",
+      "Compiler/src/timing.jl",
+      "Compiler/src/typeinfer.jl",
+      "Compiler/src/typelimits.jl",
+      "Compiler/src/types.jl",
+      "Compiler/src/typeutils.jl",
+      "Compiler/src/utilities.jl",
+      "Compiler/src/verifytrim.jl"
+    ]
+  },
+  {
     "sha": "e986983706bc6cad31400724be7e6804e285b913",
     "author": "Kristoffer Carlsson",
     "date": "2025-10-02T15:03:47+02:00",
@@ -385,6 +502,27 @@
     "files": [
       "src/dlload.c",
       "test/ccall.jl"
+    ]
+  },
+  {
+    "sha": "c841b5fe7d5fc2fa3bd5fbd1e1163e615707cbde",
+    "author": "Jameson Nash",
+    "date": "2025-10-02T03:27:11-04:00",
+    "subject": "Compiler: fix inferred nothrow effects for add_ptr and sub_ptr (#59720)",
+    "pr_number": "59720",
+    "files": [
+      "Compiler/src/tfuncs.jl",
+      "Compiler/test/effects.jl"
+    ]
+  },
+  {
+    "sha": "968b16c38689bb347e2e99e73e2e7d99ee814898",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-10-02T16:26:05+09:00",
+    "subject": "do not specialze for `abstract_eval_nonlinearized_foreigncall_name` (#59722)",
+    "pr_number": "59722",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl"
     ]
   },
   {
@@ -427,6 +565,24 @@
     ]
   },
   {
+    "sha": "3e2a4edd53ceb9f1fc3dc05c4448c5e1d4ccb5c8",
+    "author": "Lionel Zoubritzky",
+    "date": "2025-10-01T17:06:32+02:00",
+    "subject": "Change delayed delete mechanism to prevent cross-drive mv failure for in-use DLL (#59635)",
+    "pr_number": "59635",
+    "files": [
+      "Compiler/test/special_loading.jl",
+      "base/file.jl",
+      "test/compileall.jl",
+      "test/core.jl",
+      "test/loading.jl",
+      "test/precompile.jl",
+      "test/precompile_utils.jl",
+      "test/relocatedepot.jl",
+      "test/tempdepot.jl"
+    ]
+  },
+  {
     "sha": "0c8768ff321c83245475503ca8a2fe2a7917352b",
     "author": "Keno Fischer",
     "date": "2025-10-01T07:45:44+02:00",
@@ -435,6 +591,17 @@
     "files": [
       "src/julia-syntax.scm",
       "test/worlds.jl"
+    ]
+  },
+  {
+    "sha": "694902b3d4992ac21444dd6ef4539871d1ee18e9",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-10-01T04:21:41+09:00",
+    "subject": "effects: improve nothrow modeling for `Core._svec_len` (#59706)",
+    "pr_number": "59706",
+    "files": [
+      "Compiler/src/tfuncs.jl",
+      "Compiler/test/effects.jl"
     ]
   },
   {
@@ -459,6 +626,28 @@
     ]
   },
   {
+    "sha": "e91ab4f262832f9280fb755b19f88013d7fa6b71",
+    "author": "Jameson Nash",
+    "date": "2025-09-29T11:17:14-04:00",
+    "subject": "[Compiler] fix stdout/stderr to point to Core (#59672)",
+    "pr_number": "59672",
+    "files": [
+      "Compiler/src/Compiler.jl",
+      "Compiler/test/validation.jl"
+    ]
+  },
+  {
+    "sha": "eb2d838a8ae468c95d0f9919269fb7d0445ed2c9",
+    "author": "C\u00e9dric Belmant",
+    "date": "2025-09-27T03:43:07+02:00",
+    "subject": "Minor fixes for IRInterp in presence of ABI overrides (#59671)",
+    "pr_number": "59671",
+    "files": [
+      "Compiler/src/inferencestate.jl",
+      "Compiler/src/ssair/irinterp.jl"
+    ]
+  },
+  {
     "sha": "23cfff24924af3725860a1ad526ab82620d733f1",
     "author": "Max Horn",
     "date": "2025-09-26T11:50:56+02:00",
@@ -466,6 +655,16 @@
     "pr_number": "59630",
     "files": [
       "src/julia.h"
+    ]
+  },
+  {
+    "sha": "a5576b4ddb61ce10eefba752a21ef806c4d6fd93",
+    "author": "C\u00e9dric Belmant",
+    "date": "2025-09-24T22:57:06+02:00",
+    "subject": "Set world bounds on `CodeInfo` created for `OpaqueClosure(::IRCode)` (#59631)",
+    "pr_number": "59631",
+    "files": [
+      "Compiler/src/opaque_closure.jl"
     ]
   },
   {
@@ -576,6 +775,17 @@
       "src/support/ios.c",
       "src/support/ios.h",
       "src/task.c"
+    ]
+  },
+  {
+    "sha": "a4e02cae8d1f1f5ddc4417921820f7a349728675",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-09-22T15:59:35+09:00",
+    "subject": "optimizations: improve `Core._apply_iterate` call conversion in #59548 (#59601)",
+    "pr_number": "59601",
+    "files": [
+      "Compiler/src/ssair/passes.jl",
+      "Compiler/test/irpasses.jl"
     ]
   },
   {
@@ -853,6 +1063,16 @@
     ]
   },
   {
+    "sha": "d3cc67aef6a116b414675aeaf4ffbee2360d5bf8",
+    "author": "Gabriel Baraldi",
+    "date": "2025-09-11T17:00:48-03:00",
+    "subject": "Use invokelatest for exiting because exit doesn't exist in the compiler (#59520)",
+    "pr_number": "59520",
+    "files": [
+      "Compiler/src/precompile.jl"
+    ]
+  },
+  {
     "sha": "da5d73ce3584b30b4e00b09b084bbb67bc44819b",
     "author": "Gabriel Baraldi",
     "date": "2025-09-10T11:00:42-03:00",
@@ -985,6 +1205,16 @@
     ]
   },
   {
+    "sha": "cdd4ac559647d89646f39acaed718945b730199d",
+    "author": "Neven Sajko",
+    "date": "2025-09-02T16:31:45+02:00",
+    "subject": "`Compiler.IRShow`: prevent a closure capture boxing with the usual workaround (#59455)",
+    "pr_number": "59455",
+    "files": [
+      "Compiler/src/ssair/show.jl"
+    ]
+  },
+  {
     "sha": "8052b91e6183403ced9b7b0ded84e04b5d297f85",
     "author": "Ian Butterworth",
     "date": "2025-08-30T10:36:10-04:00",
@@ -1032,6 +1262,20 @@
       "src/jl_uv.c",
       "src/module.c",
       "src/toplevel.c"
+    ]
+  },
+  {
+    "sha": "c05b68f04f77da953fe832dd95151d137b0ea285",
+    "author": "C\u00e9dric Belmant",
+    "date": "2025-08-28T04:57:51+02:00",
+    "subject": "Don't inline generated functions if we can't invoke their generator (#59018)",
+    "pr_number": "59018",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "Compiler/src/optimize.jl",
+      "Compiler/src/ssair/inlining.jl",
+      "Compiler/src/ssair/passes.jl",
+      "Compiler/test/inline.jl"
     ]
   },
   {
@@ -1131,6 +1375,17 @@
     ]
   },
   {
+    "sha": "fc1fb4139e71ee57e90263769a8fef510353f11c",
+    "author": "Keno Fischer",
+    "date": "2025-08-23T03:12:10-04:00",
+    "subject": "bpart: Fix reresolution logic on export value changes (#59368)",
+    "pr_number": "59368",
+    "files": [
+      "Compiler/src/bindinginvalidations.jl",
+      "test/rebinding.jl"
+    ]
+  },
+  {
     "sha": "ceeb661e2eaa14d3e2e174095c5747f7a7124725",
     "author": "Sam Schweigel",
     "date": "2025-08-22T14:57:45-07:00",
@@ -1178,6 +1433,16 @@
     ]
   },
   {
+    "sha": "965658a6bdd591b8726b575d57b3046fb1a36c16",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-08-21T13:29:17+09:00",
+    "subject": "coverage: handle cases where `di.def` is `nothing` (#59342)",
+    "pr_number": "59342",
+    "files": [
+      "Compiler/src/inferencestate.jl"
+    ]
+  },
+  {
     "sha": "63022fe0b41be06101b1196ffa1560b3994ef85a",
     "author": "Gabriel Baraldi",
     "date": "2025-08-20T21:08:33-03:00",
@@ -1185,6 +1450,22 @@
     "pr_number": "59266",
     "files": [
       "src/threading.c"
+    ]
+  },
+  {
+    "sha": "fa4972dbbc4d96fd971c78fb49aacad5821ce19f",
+    "author": "Cody Tapscott",
+    "date": "2025-08-20T08:10:38-04:00",
+    "subject": "Make `haskey(::@Kwargs{item::Bool}, :item)` constant-fold (#59320)",
+    "pr_number": "59320",
+    "files": [
+      "Compiler/test/inference.jl",
+      "base/essentials.jl",
+      "base/iterators.jl",
+      "base/namedtuple.jl",
+      "base/show.jl",
+      "test/namedtuple.jl",
+      "test/show.jl"
     ]
   },
   {
@@ -1210,6 +1491,25 @@
       "base/reflection.jl",
       "src/gf.c",
       "src/julia.h"
+    ]
+  },
+  {
+    "sha": "f345ee78a8423df398d46c1bf2ba545b2f7a6319",
+    "author": "Jameson Nash",
+    "date": "2025-08-13T10:27:45-04:00",
+    "subject": "compiler: consolidate staticdata.jl and invalidations.jl into Compiler proper [NFCI] (#59238)",
+    "pr_number": "59238",
+    "files": [
+      "Compiler/src/Compiler.jl",
+      "Compiler/src/bindinginvalidations.jl",
+      "Compiler/src/reinfer.jl",
+      "Compiler/src/typeinfer.jl",
+      "base/Base.jl",
+      "base/Base_compiler.jl",
+      "base/c.jl",
+      "base/loading.jl",
+      "sysimage.mk",
+      "test/precompile.jl"
     ]
   },
   {
@@ -1298,6 +1598,17 @@
     ]
   },
   {
+    "sha": "b35c4f471f05873a4de6a989e0038a5c28cd09ce",
+    "author": "Jeff Bezanson",
+    "date": "2025-08-04T17:07:22-04:00",
+    "subject": "model ccall binding access in inference (#58872)",
+    "pr_number": "58872",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "test/ccall.jl"
+    ]
+  },
+  {
     "sha": "13f6b3b5c0361c865ba6f3e6f09fb7d3ae6a6735",
     "author": "Thomas van Doornmalen",
     "date": "2025-08-02T23:26:28+02:00",
@@ -1305,6 +1616,16 @@
     "pr_number": "59192",
     "files": [
       "src/jl_exported_funcs.inc"
+    ]
+  },
+  {
+    "sha": "94cc9968af3046331da25cf6eac50c524d132f88",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-08-02T22:01:42+09:00",
+    "subject": "inference: propagate more `LimitedAccuracy` information (#59187)",
+    "pr_number": "59187",
+    "files": [
+      "Compiler/src/typelattice.jl"
     ]
   },
   {
@@ -1338,6 +1659,17 @@
       "stdlib/Test/src/Test.jl",
       "test/misc.jl",
       "test/worlds.jl"
+    ]
+  },
+  {
+    "sha": "9473ef73eccfe2485411ce140047e6285f3a5cad",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-08-02T04:21:56+09:00",
+    "subject": "inference: avoid `LimitedAccuracy` within slot wrappers (#59182)",
+    "pr_number": "59182",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "Compiler/src/typelattice.jl"
     ]
   },
   {
@@ -1433,6 +1765,16 @@
     "files": [
       "src/method.c",
       "test/core.jl"
+    ]
+  },
+  {
+    "sha": "2b71259d025557ca3d86925eb9e73bd5ddebb694",
+    "author": "Keno Fischer",
+    "date": "2025-07-26T21:13:19-04:00",
+    "subject": "inference: Make test indepdent of the `Complex` method table (#59105)",
+    "pr_number": "59105",
+    "files": [
+      "Compiler/test/inference.jl"
     ]
   },
   {
@@ -1678,6 +2020,18 @@
     ]
   },
   {
+    "sha": "34f9032502f4d590f7889ae51093a452485f6714",
+    "author": "\u8346\u957f\u902f",
+    "date": "2025-07-10T15:44:10+08:00",
+    "subject": "chore: remove redundant words in comment (#58955)",
+    "pr_number": "58955",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "base/staticdata.jl",
+      "stdlib/Logging/test/runtests.jl"
+    ]
+  },
+  {
     "sha": "5c31ec013f75363be10851b4889b854cf2f16db6",
     "author": "Sam Schweigel",
     "date": "2025-07-08T10:40:02-07:00",
@@ -1697,6 +2051,53 @@
       "base/invalidation.jl",
       "src/module.c",
       "src/staticdata.c"
+    ]
+  },
+  {
+    "sha": "9fc33b99bd3efab36da0dd856f2312bd69d3395b",
+    "author": "Cody Tapscott",
+    "date": "2025-07-07T11:45:27-04:00",
+    "subject": "Support \"functors\" for code reflection utilities (#58891)",
+    "pr_number": "58891",
+    "files": [
+      "Compiler/test/codegen.jl",
+      "base/reflection.jl",
+      "stdlib/InteractiveUtils/src/codeview.jl",
+      "stdlib/InteractiveUtils/test/runtests.jl",
+      "test/rebinding.jl",
+      "test/reflection.jl"
+    ]
+  },
+  {
+    "sha": "144de95c20a600e1c554847da71706c7696cbf99",
+    "author": "Cody Tapscott",
+    "date": "2025-07-07T11:44:01-04:00",
+    "subject": "IRShow: Print arg0 type when necessary to disambiguate `invoke` (#58893)",
+    "pr_number": "58893",
+    "files": [
+      "Compiler/src/ssair/show.jl"
+    ]
+  },
+  {
+    "sha": "32211a62c4eb85bd74a510661afe2d978ac38d07",
+    "author": "C\u00e9dric Belmant",
+    "date": "2025-07-03T18:02:28+02:00",
+    "subject": "Support `debuginfo` context option in IRShow for `IRCode`/`IncrementalCompact` (#58642)",
+    "pr_number": "58642",
+    "files": [
+      "Compiler/src/ssair/show.jl",
+      "test/show.jl"
+    ]
+  },
+  {
+    "sha": "a4a1a7eee69211b499104da186c4ffe140bd2487",
+    "author": "C\u00e9dric Belmant",
+    "date": "2025-07-03T05:51:52+02:00",
+    "subject": "Add missing module qualifier (#58877)",
+    "pr_number": "58877",
+    "files": [
+      "Compiler/test/AbstractInterpreter.jl",
+      "base/stacktraces.jl"
     ]
   },
   {
@@ -1797,6 +2198,17 @@
       "src/gf.c",
       "src/julia_internal.h",
       "src/staticdata.c"
+    ]
+  },
+  {
+    "sha": "46513e6b6840430de7971faf1011495c78a0fa62",
+    "author": "Jameson Nash",
+    "date": "2025-06-30T11:28:03-04:00",
+    "subject": "Encode fully_covers=false edges using negative of method count",
+    "pr_number": "",
+    "files": [
+      "Compiler/src/stmtinfo.jl",
+      "base/staticdata.jl"
     ]
   },
   {
@@ -1918,6 +2330,17 @@
     ]
   },
   {
+    "sha": "3ae69f688db8e5dc30bcc1256731c4732dfcd24e",
+    "author": "Jameson Nash",
+    "date": "2025-06-25T14:14:38-04:00",
+    "subject": "Revert code changes from \"strengthen assume_effects doc\" PR (#58289)",
+    "pr_number": "58289",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "Compiler/src/typeinfer.jl"
+    ]
+  },
+  {
     "sha": "c7a092a9c44956554d1609c0771481f85e2b5bb4",
     "author": "Jameson Nash",
     "date": "2025-06-25T14:08:41-04:00",
@@ -1973,6 +2396,18 @@
     ]
   },
   {
+    "sha": "787e0d9bf62b76386a1853b961312bb3cd45cf32",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-06-18T03:45:02+09:00",
+    "subject": "bump Compiler.jl version to 0.1.1 (#58744)",
+    "pr_number": "58744",
+    "files": [
+      "Compiler/LICENSE.md",
+      "Compiler/Project.toml",
+      "Compiler/README.md"
+    ]
+  },
+  {
     "sha": "aa10603c188669d9f3b4be4fa744eeab32b975af",
     "author": "Gabriel Baraldi",
     "date": "2025-06-17T12:36:26-03:00",
@@ -1981,6 +2416,17 @@
     "files": [
       "src/jitlayers.cpp",
       "test/cmdlineargs.jl"
+    ]
+  },
+  {
+    "sha": "89dfb683be39ce8a89ddcd80d766ccbcdfcf6d04",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-06-17T11:25:47+09:00",
+    "subject": "inference: improve `isdefined_tfunc` accuracy for `MustAlias` (#58743)",
+    "pr_number": "58743",
+    "files": [
+      "Compiler/src/tfuncs.jl",
+      "Compiler/test/inference.jl"
     ]
   },
   {
@@ -2042,6 +2488,18 @@
       "src/jitlayers.h",
       "src/julia_internal.h",
       "src/runtime_ccall.cpp"
+    ]
+  },
+  {
+    "sha": "da004516e7b53a5cfd264170fcb3ea33f9ea0bc6",
+    "author": "Gabriel Baraldi",
+    "date": "2025-06-10T16:49:55-03:00",
+    "subject": "Add 0 predecessor to entry basic block and handle it in inlining (#58683)",
+    "pr_number": "58683",
+    "files": [
+      "Compiler/src/ssair/inlining.jl",
+      "Compiler/src/ssair/ir.jl",
+      "Compiler/test/ssair.jl"
     ]
   },
   {
@@ -2150,6 +2608,20 @@
     ]
   },
   {
+    "sha": "602d6ee987486ec2b0953bb2bf895ca7986b7a1a",
+    "author": "C\u00e9dric Belmant",
+    "date": "2025-06-04T15:20:36+02:00",
+    "subject": "InteractiveUtils: Fully support broadcasting expressions for code introspection macros  (#58349)",
+    "pr_number": "58349",
+    "files": [
+      "Compiler/test/irutils.jl",
+      "NEWS.md",
+      "stdlib/InteractiveUtils/src/macros.jl",
+      "stdlib/InteractiveUtils/test/runtests.jl",
+      "stdlib/Test/src/Test.jl"
+    ]
+  },
+  {
     "sha": "b04b1040203d4093163d285e25a71bb9bf5b9f0c",
     "author": "Gabriel Baraldi",
     "date": "2025-06-03T23:03:21-03:00",
@@ -2188,6 +2660,16 @@
     "files": [
       "src/julia-syntax.scm",
       "test/syntax.jl"
+    ]
+  },
+  {
+    "sha": "9108dd08a572e394854d85aa0b2b680cc6a591c3",
+    "author": "Neven Sajko",
+    "date": "2025-06-03T00:15:17+02:00",
+    "subject": "test: Compiler: relax flaky codegen test (#57432)",
+    "pr_number": "57432",
+    "files": [
+      "Compiler/test/codegen.jl"
     ]
   },
   {
@@ -2392,6 +2874,17 @@
     ]
   },
   {
+    "sha": "f8ece052b0ad98ed27316b63218b32c0877e69da",
+    "author": "Cody Tapscott",
+    "date": "2025-05-27T09:00:44-04:00",
+    "subject": "Don't filter `Core` methods from newly-inferred list (#58510)",
+    "pr_number": "58510",
+    "files": [
+      "Compiler/src/cicache.jl",
+      "test/precompile.jl"
+    ]
+  },
+  {
     "sha": "c5df01807e3b3549b2669afdea11526b80049f3a",
     "author": "Jeff Bezanson",
     "date": "2025-05-22T17:00:12-04:00",
@@ -2429,6 +2922,17 @@
     ]
   },
   {
+    "sha": "6f52a98ac3da243090ae06ac1cdae185f04aa184",
+    "author": "Gabriel Baraldi",
+    "date": "2025-05-22T09:30:49-03:00",
+    "subject": "Allow constant propagation of mutables with const fields (#58371)",
+    "pr_number": "58371",
+    "files": [
+      "Compiler/src/abstractlattice.jl",
+      "Compiler/test/irpasses.jl"
+    ]
+  },
+  {
     "sha": "e3982cd84030e4baf7b8e97119bbeec0fa982935",
     "author": "Gabriel Baraldi",
     "date": "2025-05-21T23:46:59-03:00",
@@ -2451,6 +2955,16 @@
       "src/jl_exported_funcs.inc",
       "src/julia_internal.h",
       "src/staticdata.c"
+    ]
+  },
+  {
+    "sha": "3466a161d5ba78851795290071c1d3b384d3446f",
+    "author": "Keno Fischer",
+    "date": "2025-05-21T09:32:13-04:00",
+    "subject": "ir: Don't fail if :invoke has zero arguments (#58477)",
+    "pr_number": "58477",
+    "files": [
+      "Compiler/src/ssair/passes.jl"
     ]
   },
   {
@@ -2493,6 +3007,17 @@
     ]
   },
   {
+    "sha": "f4d17506bcc8cffa36cdef4a8c354a44cba83bb0",
+    "author": "Keno Fischer",
+    "date": "2025-05-20T12:31:29-04:00",
+    "subject": "ir: Consider Argument a useref (#58467)",
+    "pr_number": "58467",
+    "files": [
+      "Compiler/src/ssair/ir.jl",
+      "Compiler/test/ssair.jl"
+    ]
+  },
+  {
     "sha": "2e2fac5beafd5596cbb3933728c12bd141349c5e",
     "author": "Jameson Nash",
     "date": "2025-05-19T16:49:16-04:00",
@@ -2506,6 +3031,17 @@
     ]
   },
   {
+    "sha": "4bcd7c9ca3dfb54837eaf768c3f6b898e5420b31",
+    "author": "Keno Fischer",
+    "date": "2025-05-19T16:48:58-04:00",
+    "subject": "ir/verify: Give more correct errors in two places (#58443)",
+    "pr_number": "58443",
+    "files": [
+      "Compiler/src/ssair/ir.jl",
+      "Compiler/src/ssair/verify.jl"
+    ]
+  },
+  {
     "sha": "1b0b02869daef1d2a1b8e8105075132357ee6897",
     "author": "Gabriel Baraldi",
     "date": "2025-05-19T12:15:46-03:00",
@@ -2514,6 +3050,47 @@
     "files": [
       "src/datatype.c",
       "test/core.jl"
+    ]
+  },
+  {
+    "sha": "6cfa52fb9aed8d24cce2dd1649789667b90280e1",
+    "author": "Jakob Nybo Nissen",
+    "date": "2025-04-25T09:03:23+02:00",
+    "subject": "Use takestring! in Base and docs",
+    "pr_number": "",
+    "files": [
+      "Compiler/src/ssair/show.jl",
+      "base/errorshow.jl",
+      "base/filesystem.jl",
+      "base/indices.jl",
+      "base/int.jl",
+      "base/io.jl",
+      "base/iobuffer.jl",
+      "base/iostream.jl",
+      "base/logging/ConsoleLogger.jl",
+      "base/pkgid.jl",
+      "base/show.jl",
+      "base/stat.jl",
+      "base/strings/annotated.jl",
+      "base/strings/basic.jl",
+      "base/strings/io.jl",
+      "base/strings/unicode.jl",
+      "base/strings/util.jl",
+      "base/task.jl",
+      "base/toml_parser.jl",
+      "base/util.jl",
+      "doc/src/devdocs/functions.md",
+      "doc/src/manual/getting-started.md",
+      "stdlib/Base64/src/encode.jl",
+      "stdlib/FileWatching/src/pidfile.jl",
+      "stdlib/InteractiveUtils/src/InteractiveUtils.jl",
+      "stdlib/LibGit2/src/utils.jl",
+      "stdlib/Markdown/src/Common/block.jl",
+      "stdlib/Markdown/src/GitHub/GitHub.jl",
+      "stdlib/Markdown/src/parse/parse.jl",
+      "stdlib/Markdown/src/parse/util.jl",
+      "stdlib/REPL/src/LineEdit.jl",
+      "stdlib/REPL/src/REPL.jl"
     ]
   },
   {
@@ -2534,6 +3111,16 @@
     ]
   },
   {
+    "sha": "de090a92b3d564179d1fdeed7455d91c356accfb",
+    "author": "Mos\u00e8 Giordano",
+    "date": "2025-05-17T07:34:13+01:00",
+    "subject": "[Compiler] Add more tests for non-power-of-two primitive types (#58437)",
+    "pr_number": "58437",
+    "files": [
+      "Compiler/test/codegen.jl"
+    ]
+  },
+  {
     "sha": "a483d90adc6176e5a3639a329a3a1fd309411b81",
     "author": "Keno Fischer",
     "date": "2025-05-16T15:52:54-04:00",
@@ -2541,6 +3128,42 @@
     "pr_number": "58429",
     "files": [
       "src/codegen.cpp"
+    ]
+  },
+  {
+    "sha": "ee7e8147902996ac8c563672c666c787126613ca",
+    "author": "Keno Fischer",
+    "date": "2025-05-16T15:52:16-04:00",
+    "subject": "stacktraces: Add an extension point for printing custom-owner CIs (#58430)",
+    "pr_number": "58430",
+    "files": [
+      "Compiler/src/Compiler.jl",
+      "Compiler/src/abstractinterpretation.jl",
+      "base/invalidation.jl",
+      "base/runtime_internals.jl",
+      "base/stacktraces.jl",
+      "base/staticdata.jl"
+    ]
+  },
+  {
+    "sha": "7ca634adc0d9bc674b05663a7e24250f3bd5fc33",
+    "author": "Em Chu",
+    "date": "2025-05-16T06:07:40-07:00",
+    "subject": "Fix MethodError in IR validator (#58425)",
+    "pr_number": "58425",
+    "files": [
+      "Compiler/src/validation.jl"
+    ]
+  },
+  {
+    "sha": "43ead4774248b1cf9cb84a349e9e90b3595c9ecd",
+    "author": "Cody Tapscott",
+    "date": "2025-05-15T21:33:30-04:00",
+    "subject": "reflection: Label \"dynamic invoke\" in `code_typed` (#58411)",
+    "pr_number": "58411",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "Compiler/src/ssair/show.jl"
     ]
   },
   {
@@ -2553,6 +3176,17 @@
       "src/ast.scm",
       "src/julia-syntax.scm",
       "test/syntax.jl"
+    ]
+  },
+  {
+    "sha": "18f7fe9618d435c3cb35744e9a61dd5491f8bb53",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-05-15T16:55:44+09:00",
+    "subject": "change the Compiler.jl stdlib version to 0.1.0 (#58420)",
+    "pr_number": "58420",
+    "files": [
+      "Compiler/Project.toml",
+      "Compiler/README.md"
     ]
   },
   {
@@ -2616,6 +3250,28 @@
     ]
   },
   {
+    "sha": "f0a8dd8ea32aee6b0ace6025513a03981c12d551",
+    "author": "Keno Fischer",
+    "date": "2025-05-13T13:01:43-04:00",
+    "subject": "Fix signedness typo in world range update (#58390)",
+    "pr_number": "58390",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "Compiler/src/typeinfer.jl"
+    ]
+  },
+  {
+    "sha": "87ef4b338662172bf4dcd7961fcb338eb507f2ff",
+    "author": "Cody Tapscott",
+    "date": "2025-05-13T12:52:38-04:00",
+    "subject": "Add `Compiler._verify_trim_world_age` for better printing",
+    "pr_number": "",
+    "files": [
+      "Compiler/src/typeinfer.jl",
+      "contrib/juliac-buildscript.jl"
+    ]
+  },
+  {
     "sha": "68ba7b6fb0885f8db44bb5d6828049958d95325d",
     "author": "Tim Besard",
     "date": "2025-05-13T17:43:57+02:00",
@@ -2633,6 +3289,16 @@
     "pr_number": "58393",
     "files": [
       "src/julia.h"
+    ]
+  },
+  {
+    "sha": "b319a959b0a2944f76f3ff1615a594ca384e782f",
+    "author": "C\u00e9dric Belmant",
+    "date": "2025-05-13T05:48:56+02:00",
+    "subject": "Use `get_ci_mi` in `store_backedges` (#58394)",
+    "pr_number": "58394",
+    "files": [
+      "Compiler/src/typeinfer.jl"
     ]
   },
   {
@@ -2693,6 +3359,28 @@
     ]
   },
   {
+    "sha": "24d2f4af851e6911fe2ea242a82cf2338d46afc1",
+    "author": "C\u00e9dric Belmant",
+    "date": "2025-05-09T18:37:44+02:00",
+    "subject": "Defer global caching of `CodeInstance` to post-optimization step (#58343)",
+    "pr_number": "58343",
+    "files": [
+      "Compiler/src/optimize.jl",
+      "Compiler/src/typeinfer.jl"
+    ]
+  },
+  {
+    "sha": "0cb1adbccfecaa18eabd8ddf546f247130e8c340",
+    "author": "Keno Fischer",
+    "date": "2025-05-09T11:56:12-04:00",
+    "subject": "Use getsplit interface for InvokeCallInfo (#58328)",
+    "pr_number": "58328",
+    "files": [
+      "Compiler/src/ssair/inlining.jl",
+      "Compiler/src/stmtinfo.jl"
+    ]
+  },
+  {
     "sha": "9986d97b879f77941f32f39be6fe785c2acd9c95",
     "author": "Gabriel Baraldi",
     "date": "2025-05-08T15:27:52-03:00",
@@ -2702,6 +3390,16 @@
       "src/llvm-late-gc-lowering.cpp",
       "test/llvmpasses/image-codegen.jl",
       "test/llvmpasses/late-lower-gc.ll"
+    ]
+  },
+  {
+    "sha": "75255683192e98b07d22cf0cd4e7242401ba84fb",
+    "author": "Cody Tapscott",
+    "date": "2025-05-08T11:27:40-04:00",
+    "subject": "Update back-edge de-duplication test",
+    "pr_number": "",
+    "files": [
+      "Compiler/test/invalidation.jl"
     ]
   },
   {
@@ -2722,6 +3420,16 @@
     "pr_number": "",
     "files": [
       "src/staticdata.c"
+    ]
+  },
+  {
+    "sha": "366a2246b243c5b831bdcded3a046a86d1559f8f",
+    "author": "Cody Tapscott",
+    "date": "2025-04-14T17:34:28-04:00",
+    "subject": "typeinfer: De-duplicate backedges as they are stored",
+    "pr_number": "",
+    "files": [
+      "Compiler/src/typeinfer.jl"
     ]
   },
   {
@@ -2791,6 +3499,18 @@
     ]
   },
   {
+    "sha": "b43baa134f5212b1ff4ce8bbaae50f4b62170e1d",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-05-06T20:05:59+09:00",
+    "subject": "use `src.nargs` for `validate_code!` (#58327)",
+    "pr_number": "58327",
+    "files": [
+      "Compiler/src/validation.jl",
+      "Compiler/test/contextual.jl",
+      "Compiler/test/validation.jl"
+    ]
+  },
+  {
     "sha": "3d48f59a138a70d3e5d48021f7a4a9a98e0843bb",
     "author": "Gabriel Baraldi",
     "date": "2025-05-06T06:12:36-03:00",
@@ -2809,6 +3529,41 @@
     "files": [
       "src/llvm-remove-addrspaces.cpp",
       "test/llvmpasses/remove-addrspaces.ll"
+    ]
+  },
+  {
+    "sha": "c894e049d189fb2a5c978a43ec8eab13f4424da8",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-05-06T16:43:17+09:00",
+    "subject": "improve robustness of `Vararg` checks in newly added `abstract_eval_xxx` (#58325)",
+    "pr_number": "58325",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "Compiler/test/inference.jl"
+    ]
+  },
+  {
+    "sha": "7c40a71dac3725b077353bd59062b8a1daddcb51",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-05-06T13:03:28+09:00",
+    "subject": "move to a simpler versioning policy for the Compiler.jl stdlib (#57520)",
+    "pr_number": "57520",
+    "files": [
+      "Compiler/Project.toml",
+      "Compiler/README.md"
+    ]
+  },
+  {
+    "sha": "e9d534ce8e201b15a8188bb3b973000b489fa769",
+    "author": "Cody Tapscott",
+    "date": "2025-05-02T13:30:18-04:00",
+    "subject": "trimming: follow-ups to finalizer support",
+    "pr_number": "",
+    "files": [
+      "Compiler/src/typeinfer.jl",
+      "Compiler/src/verifytrim.jl",
+      "Compiler/test/verifytrim.jl",
+      "HISTORY.md"
     ]
   },
   {
@@ -2845,6 +3600,91 @@
     ]
   },
   {
+    "sha": "1237a9c8ed781809832af5b06cb2467096809fca",
+    "author": "Oscar Smith",
+    "date": "2025-05-02T20:46:25-04:00",
+    "subject": "improve isdefined precision for 0 field types (#58220)",
+    "pr_number": "58220",
+    "files": [
+      "Compiler/src/tfuncs.jl",
+      "Compiler/test/inference.jl",
+      "base/runtime_internals.jl"
+    ]
+  },
+  {
+    "sha": "48bd67353ddf660469e8b3d5b33eff8b6e36bcf2",
+    "author": "Jameson Nash",
+    "date": "2025-05-02T13:12:45-04:00",
+    "subject": "Prevent type infer hang of \"simple\" recursive functions (#58273)",
+    "pr_number": "58273",
+    "files": [
+      "Compiler/src/typeinfer.jl",
+      "Compiler/test/inference.jl"
+    ]
+  },
+  {
+    "sha": "7e515b139ecc6217bfb131f0fa61705abebb6b42",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-05-02T15:00:42+09:00",
+    "subject": "inference: prevent nested slot wrappers in abstract_call_builtin (#58249)",
+    "pr_number": "58249",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "Compiler/test/inference.jl"
+    ]
+  },
+  {
+    "sha": "0578395d9c980f496b188a383cc9266bce86d689",
+    "author": "Cody Tapscott",
+    "date": "2025-04-16T21:50:43+00:00",
+    "subject": "Adjust `--trim` tests for new functionality",
+    "pr_number": "",
+    "files": [
+      "Compiler/test/verifytrim.jl"
+    ]
+  },
+  {
+    "sha": "d54649f57af9240a4968b00ad900d535981e497d",
+    "author": "Cody Tapscott",
+    "date": "2025-04-16T20:03:33+00:00",
+    "subject": "typeinfer: Work around inference bug",
+    "pr_number": "",
+    "files": [
+      "Compiler/src/typeinfer.jl"
+    ]
+  },
+  {
+    "sha": "ce56baa3b54dde4e3dc96da5571daf5841d4295f",
+    "author": "Cody Tapscott",
+    "date": "2025-04-11T20:39:15-04:00",
+    "subject": "Collect invoke only for `ftyp === typeof(finalizer)`",
+    "pr_number": "",
+    "files": [
+      "Compiler/src/typeinfer.jl"
+    ]
+  },
+  {
+    "sha": "d34fb93e4a2837b04a6662295ed9550f8f281005",
+    "author": "Cody Tapscott",
+    "date": "2025-04-04T15:55:13-04:00",
+    "subject": "typeinfer: add separate compile workqueue for native / call_latest code",
+    "pr_number": "",
+    "files": [
+      "Compiler/src/typeinfer.jl"
+    ]
+  },
+  {
+    "sha": "e4e86a2a6e7442405749526545d254a55a0ec5a5",
+    "author": "Jeff Bezanson",
+    "date": "2025-04-04T15:15:57-04:00",
+    "subject": "some fixes",
+    "pr_number": "",
+    "files": [
+      "Compiler/src/typeinfer.jl",
+      "Compiler/src/verifytrim.jl"
+    ]
+  },
+  {
     "sha": "ea6a465488d6a2266cd63f316dffe790d31266ba",
     "author": "Cody Tapscott",
     "date": "2025-04-03T16:15:01-04:00",
@@ -2855,6 +3695,33 @@
       "Compiler/src/verifytrim.jl",
       "base/runtime_internals.jl",
       "src/gf.c"
+    ]
+  },
+  {
+    "sha": "3864b18af6a066400a1cb89b01902ef289fb524b",
+    "author": "Keno Fischer",
+    "date": "2025-04-30T18:35:27+02:00",
+    "subject": "Reland #57979 (and following #58083 #58082) (#58203)",
+    "pr_number": "58203",
+    "files": [
+      "Compiler/extras/CompilerDevTools/src/CompilerDevTools.jl",
+      "Compiler/src/optimize.jl",
+      "Compiler/src/ssair/inlining.jl",
+      "Compiler/src/typeinfer.jl",
+      "Compiler/test/codegen.jl",
+      "Compiler/test/inline.jl"
+    ]
+  },
+  {
+    "sha": "d7cd2710f6d919cd99e3b26a8056bbaeee74560c",
+    "author": "Keno Fischer",
+    "date": "2025-04-30T18:33:04+02:00",
+    "subject": "Strengthen language around `@assume_effects` :consistent (#58254)",
+    "pr_number": "58254",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "Compiler/src/typeinfer.jl",
+      "base/expr.jl"
     ]
   },
   {
@@ -3158,6 +4025,31 @@
     ]
   },
   {
+    "sha": "a7b8c833a3ec15c5b9adac2cc63caffe086b474c",
+    "author": "Jameson Nash",
+    "date": "2025-04-22T08:11:09-04:00",
+    "subject": "Revert #57979 (and following #58083 #58082) (#58182)",
+    "pr_number": "58182",
+    "files": [
+      "Compiler/extras/CompilerDevTools/src/CompilerDevTools.jl",
+      "Compiler/src/optimize.jl",
+      "Compiler/src/ssair/inlining.jl",
+      "Compiler/src/typeinfer.jl",
+      "Compiler/test/codegen.jl",
+      "Compiler/test/inline.jl"
+    ]
+  },
+  {
+    "sha": "473593343c1b2bf00e00775c4bf6b85eebb66c35",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-04-22T15:23:03+09:00",
+    "subject": "fix performance regression introduced by #58027 (#58184)",
+    "pr_number": "58184",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl"
+    ]
+  },
+  {
     "sha": "fb31b3c8a3ba6ff6ed5bda0caf83694a3456796c",
     "author": "Jameson Nash",
     "date": "2025-04-21T15:36:35-04:00",
@@ -3169,6 +4061,16 @@
       "src/jltypes.c",
       "src/julia.h",
       "test/core.jl"
+    ]
+  },
+  {
+    "sha": "39d748312492ae2cebc4a4103e42bfd5fa46fe0a",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-04-21T04:07:46+09:00",
+    "subject": "inference: allow specialization of `scan_specified_partitions` (#58165)",
+    "pr_number": "58165",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl"
     ]
   },
   {
@@ -3215,6 +4117,16 @@
     "files": [
       "src/staticdata.c",
       "test/precompile.jl"
+    ]
+  },
+  {
+    "sha": "5c869cd363da605f51454be03c98fe4c1ec4ba5b",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-04-18T22:58:02+09:00",
+    "subject": "inference: minor refactoring on abstractinterpretation.jl (#58154)",
+    "pr_number": "58154",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl"
     ]
   },
   {
@@ -3313,6 +4225,29 @@
     ]
   },
   {
+    "sha": "ac29e3a6c7b116d5e25e9c3420caf7bc6269f638",
+    "author": "Jameson Nash",
+    "date": "2025-04-11T12:20:27-04:00",
+    "subject": "inference: ensure source is saved for IRInterp when assumed to be available",
+    "pr_number": "",
+    "files": [
+      "Compiler/src/typeinfer.jl"
+    ]
+  },
+  {
+    "sha": "5fedf470f04f0ac04dbf346b822ca1edaf189f42",
+    "author": "Jameson Nash",
+    "date": "2025-04-15T13:10:18-04:00",
+    "subject": "much faster code-coverage for packages (#57988)",
+    "pr_number": "57988",
+    "files": [
+      "Compiler/src/inferencestate.jl",
+      "Compiler/src/utilities.jl",
+      "base/loading.jl",
+      "base/staticdata.jl"
+    ]
+  },
+  {
     "sha": "cca5ac75406b7e728a5ff3802b76fab16975ac2a",
     "author": "Jameson Nash",
     "date": "2025-04-15T13:10:00-04:00",
@@ -3401,6 +4336,54 @@
     ]
   },
   {
+    "sha": "8681bb80627da285b450905fe81652dd9b5243ab",
+    "author": "Kristoffer Carlsson",
+    "date": "2025-04-13T00:27:03+02:00",
+    "subject": "verify that `optimize_until` is a valid pass (#58033)",
+    "pr_number": "58033",
+    "files": [
+      "Compiler/src/optimize.jl",
+      "Compiler/test/irpasses.jl",
+      "Compiler/test/ssair.jl",
+      "test/show.jl"
+    ]
+  },
+  {
+    "sha": "885d4f4a9f940d6ee0073b1ddc569fb3313a5554",
+    "author": "Keno Fischer",
+    "date": "2025-04-12T15:51:14-04:00",
+    "subject": "Always set `result.src` to the result of transform_result_for_cache (#58083)",
+    "pr_number": "58083",
+    "files": [
+      "Compiler/src/typeinfer.jl"
+    ]
+  },
+  {
+    "sha": "bd193e4a8b11af93be79591072e26d0242e569e1",
+    "author": "Keno Fischer",
+    "date": "2025-04-11T22:01:38-04:00",
+    "subject": "Drop sources for constabi results in local cache (#58082)",
+    "pr_number": "58082",
+    "files": [
+      "Compiler/src/typeinfer.jl"
+    ]
+  },
+  {
+    "sha": "b422883e5753f74c95d126fb22fe48e499a88b95",
+    "author": "Keno Fischer",
+    "date": "2025-04-11T02:22:06-04:00",
+    "subject": "Move inlinability determination into cache transform (#57979)",
+    "pr_number": "57979",
+    "files": [
+      "Compiler/extras/CompilerDevTools/src/CompilerDevTools.jl",
+      "Compiler/src/optimize.jl",
+      "Compiler/src/ssair/inlining.jl",
+      "Compiler/src/typeinfer.jl",
+      "Compiler/test/codegen.jl",
+      "Compiler/test/inline.jl"
+    ]
+  },
+  {
     "sha": "92fc06fd83ac76c6a495019db112a4e907526591",
     "author": "Keno Fischer",
     "date": "2025-04-11T02:21:31-04:00",
@@ -3408,6 +4391,27 @@
     "pr_number": "58072",
     "files": [
       "src/gf.c"
+    ]
+  },
+  {
+    "sha": "451766a295cc48179745999fb38430747332c67d",
+    "author": "Keno Fischer",
+    "date": "2025-04-10T21:36:00-04:00",
+    "subject": "[CompilerDevTools] Properly handle builtins in with_new_compiler (#58074)",
+    "pr_number": "58074",
+    "files": [
+      "Compiler/extras/CompilerDevTools/src/CompilerDevTools.jl",
+      "Compiler/extras/CompilerDevTools/test/runtests.jl"
+    ]
+  },
+  {
+    "sha": "4b19ab4a448b516234f7aad5c16570ee293a95d6",
+    "author": "Keno Fischer",
+    "date": "2025-04-10T20:03:01-04:00",
+    "subject": "[CompilerDevTools] Use `with_new_compiler` directly (#58069)",
+    "pr_number": "58069",
+    "files": [
+      "Compiler/extras/CompilerDevTools/src/CompilerDevTools.jl"
     ]
   },
   {
@@ -3432,6 +4436,18 @@
     ]
   },
   {
+    "sha": "4480f42a63c4915a9d0514194a1f69aa9f2c719a",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-04-09T08:36:18-04:00",
+    "subject": "inference: simplify `abstract_eval_globalref` (#58026)",
+    "pr_number": "58026",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "Compiler/test/inference.jl",
+      "base/invalidation.jl"
+    ]
+  },
+  {
     "sha": "0cf5a4dd63872b21a1817c6d4eb1bb63af5bbe89",
     "author": "Keno Fischer",
     "date": "2025-04-08T15:45:54-04:00",
@@ -3440,6 +4456,55 @@
     "files": [
       "src/module.c",
       "test/rebinding.jl"
+    ]
+  },
+  {
+    "sha": "edbad8b55d6dda096c755a8cb816c6c82198d748",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-04-08T14:17:02-04:00",
+    "subject": "inference: re-enable inference overload for basic statements (#58027)",
+    "pr_number": "58027",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl"
+    ]
+  },
+  {
+    "sha": "e542818aa9f6deca44b07d81e94a33b953f65b70",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-04-07T18:26:08-04:00",
+    "subject": "optimizer: fix various `optimize_until` misuses (#58035)",
+    "pr_number": "58035",
+    "files": [
+      "Compiler/src/optimize.jl",
+      "Compiler/test/inline.jl",
+      "Compiler/test/irpasses.jl",
+      "Compiler/test/ssair.jl",
+      "stdlib/InteractiveUtils/test/runtests.jl"
+    ]
+  },
+  {
+    "sha": "9d00b575771f2aab357a4537fa8125081bf0e570",
+    "author": "C\u00e9dric Belmant",
+    "date": "2025-04-07T16:26:47+02:00",
+    "subject": "Run Compiler tests in parallel for `Pkg.test`, continued (#57987)",
+    "pr_number": "57987",
+    "files": [
+      "Compiler/.gitignore",
+      "Compiler/test/AbstractInterpreter.jl",
+      "Compiler/test/EscapeAnalysis.jl",
+      "Compiler/test/compact.jl",
+      "Compiler/test/contextual.jl",
+      "Compiler/test/effects.jl",
+      "Compiler/test/inference.jl",
+      "Compiler/test/inline.jl",
+      "Compiler/test/invalidation.jl",
+      "Compiler/test/irpasses.jl",
+      "Compiler/test/newinterp.jl",
+      "Compiler/test/runtests.jl",
+      "Compiler/test/setup_Compiler.jl",
+      "Compiler/test/special_loading.jl",
+      "Compiler/test/ssair.jl",
+      "Compiler/test/tarjan.jl"
     ]
   },
   {
@@ -3478,6 +4543,16 @@
       "src/staticdata.c",
       "src/toplevel.c",
       "test/rebinding.jl"
+    ]
+  },
+  {
+    "sha": "eae3a8a88c5af38885501678850173167dfe0bec",
+    "author": "C\u00e9dric Belmant",
+    "date": "2025-04-02T16:29:35+02:00",
+    "subject": "CompilerDevTools: use `transform_result_for_cache` instead of `optimize` (#57640)",
+    "pr_number": "57640",
+    "files": [
+      "Compiler/extras/CompilerDevTools/src/CompilerDevTools.jl"
     ]
   },
   {
@@ -3631,6 +4706,26 @@
     ]
   },
   {
+    "sha": "d9441ac9bc055562ba9009357b465e69c16ade68",
+    "author": "Neven Sajko",
+    "date": "2025-03-27T19:29:55+01:00",
+    "subject": "`Compiler`: `walk_to_defs`, `collect_leaves`: specialize for `predecessors` (#57859)",
+    "pr_number": "57859",
+    "files": [
+      "Compiler/src/ssair/passes.jl"
+    ]
+  },
+  {
+    "sha": "14bbb4af909d10f5a27b0c71b5477f7b66bbec13",
+    "author": "Jameson Nash",
+    "date": "2025-03-12T21:45:03+00:00",
+    "subject": "[Compiler] use a slightly better (hopefully faster) bootstrap call",
+    "pr_number": "",
+    "files": [
+      "Compiler/src/bootstrap.jl"
+    ]
+  },
+  {
     "sha": "608a06c40deba119a6c03612a512eac54ca971b8",
     "author": "Jameson Nash",
     "date": "2025-03-12T16:35:25+00:00",
@@ -3645,6 +4740,27 @@
       "src/jitlayers.cpp",
       "src/julia_internal.h",
       "test/trimming/trimming.jl"
+    ]
+  },
+  {
+    "sha": "ed3fccc0be0f3cf48ba8f0910e5a5faa58280787",
+    "author": "Neven Sajko",
+    "date": "2025-03-27T15:12:20+01:00",
+    "subject": "`Compiler`: `abstract_eval_invoke_inst`: type assert `Expr` (#57860)",
+    "pr_number": "57860",
+    "files": [
+      "Compiler/src/ssair/irinterp.jl"
+    ]
+  },
+  {
+    "sha": "626d541de6129179ff3934d6a4f95ef05c4c232c",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-03-27T18:57:51+09:00",
+    "subject": "inference: fix exct modeling of `setglobal!` (#57896)",
+    "pr_number": "57896",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "Compiler/test/inference.jl"
     ]
   },
   {
@@ -3670,6 +4786,16 @@
     ]
   },
   {
+    "sha": "7cce1d3adee9251edc4fe4ba6ae6ca1436601dbd",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-03-27T01:54:27+09:00",
+    "subject": "overload lattice ops within `abstract_eval_isdefinedglobal` (#57897)",
+    "pr_number": "57897",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl"
+    ]
+  },
+  {
     "sha": "400d0b12d28e183ef3e31780b6afe0e3eb88ba89",
     "author": "Keno Fischer",
     "date": "2025-03-26T09:15:25-04:00",
@@ -3692,6 +4818,119 @@
     ]
   },
   {
+    "sha": "58deac96d409e90b7bf3c6473742c29394ec85d9",
+    "author": "Lilith Orion Hafner",
+    "date": "2025-03-26T07:04:59-05:00",
+    "subject": "Replace -> with :: where appropriate in docstrings (#57012)",
+    "pr_number": "57012",
+    "files": [
+      "Compiler/src/abstractlattice.jl",
+      "Compiler/src/ssair/domtree.jl",
+      "Compiler/src/tfuncs.jl",
+      "Compiler/src/types.jl",
+      "Compiler/src/typeutils.jl",
+      "Compiler/src/utilities.jl",
+      "base/Base_compiler.jl",
+      "base/abstractarray.jl",
+      "base/abstractarraymath.jl",
+      "base/abstractset.jl",
+      "base/anyall.jl",
+      "base/array.jl",
+      "base/bitarray.jl",
+      "base/broadcast.jl",
+      "base/char.jl",
+      "base/cmem.jl",
+      "base/combinatorics.jl",
+      "base/complex.jl",
+      "base/dict.jl",
+      "base/docs/basedocs.jl",
+      "base/docs/intrinsicsdocs.jl",
+      "base/env.jl",
+      "base/essentials.jl",
+      "base/experimental.jl",
+      "base/file.jl",
+      "base/float.jl",
+      "base/generator.jl",
+      "base/hashing.jl",
+      "base/initdefs.jl",
+      "base/int.jl",
+      "base/intfuncs.jl",
+      "base/io.jl",
+      "base/iobuffer.jl",
+      "base/iostream.jl",
+      "base/libc.jl",
+      "base/math.jl",
+      "base/multimedia.jl",
+      "base/number.jl",
+      "base/operators.jl",
+      "base/ordering.jl",
+      "base/path.jl",
+      "base/pointer.jl",
+      "base/process.jl",
+      "base/reduce.jl",
+      "base/reflection.jl",
+      "base/refvalue.jl",
+      "base/regex.jl",
+      "base/reshapedarray.jl",
+      "base/rounding.jl",
+      "base/runtime_internals.jl",
+      "base/set.jl",
+      "base/sort.jl",
+      "base/stacktraces.jl",
+      "base/stat.jl",
+      "base/stream.jl",
+      "base/strings/annotated.jl",
+      "base/strings/basic.jl",
+      "base/strings/io.jl",
+      "base/strings/string.jl",
+      "base/strings/substring.jl",
+      "base/strings/unicode.jl",
+      "base/strings/util.jl",
+      "base/summarysize.jl",
+      "base/sysinfo.jl",
+      "base/task.jl",
+      "base/threadingconstructs.jl",
+      "base/util.jl",
+      "stdlib/Dates/src/accessors.jl",
+      "stdlib/Dates/src/adjusters.jl",
+      "stdlib/Dates/src/conversions.jl",
+      "stdlib/Dates/src/io.jl",
+      "stdlib/Dates/src/parse.jl",
+      "stdlib/Dates/src/periods.jl",
+      "stdlib/Dates/src/query.jl",
+      "stdlib/Dates/src/rounding.jl",
+      "stdlib/Dates/src/types.jl",
+      "stdlib/Future/src/Future.jl",
+      "stdlib/InteractiveUtils/src/clipboard.jl",
+      "stdlib/LibGit2/src/LibGit2.jl",
+      "stdlib/LibGit2/src/blob.jl",
+      "stdlib/LibGit2/src/callbacks.jl",
+      "stdlib/LibGit2/src/commit.jl",
+      "stdlib/LibGit2/src/diff.jl",
+      "stdlib/LibGit2/src/gitcredential.jl",
+      "stdlib/LibGit2/src/index.jl",
+      "stdlib/LibGit2/src/merge.jl",
+      "stdlib/LibGit2/src/oid.jl",
+      "stdlib/LibGit2/src/rebase.jl",
+      "stdlib/LibGit2/src/reference.jl",
+      "stdlib/LibGit2/src/remote.jl",
+      "stdlib/LibGit2/src/repository.jl",
+      "stdlib/LibGit2/src/status.jl",
+      "stdlib/LibGit2/src/tag.jl",
+      "stdlib/LibGit2/src/tree.jl",
+      "stdlib/LibGit2/src/types.jl",
+      "stdlib/LibGit2/src/utils.jl",
+      "stdlib/Markdown/src/Markdown.jl",
+      "stdlib/Markdown/src/parse/parse.jl",
+      "stdlib/Profile/src/Profile.jl",
+      "stdlib/REPL/src/TerminalMenus/AbstractMenu.jl",
+      "stdlib/Random/src/RNGs.jl",
+      "stdlib/Test/src/Test.jl",
+      "stdlib/UUIDs/src/UUIDs.jl",
+      "stdlib/Unicode/src/Unicode.jl"
+    ]
+  },
+  {
     "sha": "3360a44a4d342cead9d0a9c07815a6f5dd488aeb",
     "author": "Em Chu",
     "date": "2025-03-25T13:29:30-07:00",
@@ -3701,6 +4940,17 @@
       "src/julia-syntax.scm",
       "src/method.c",
       "test/syntax.jl"
+    ]
+  },
+  {
+    "sha": "08c87b20993dc969f42b1a6eb50b931c66f311de",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-03-25T14:28:22+09:00",
+    "subject": "effects: give the most conservative effects to unhandled builtins (#57856)",
+    "pr_number": "57856",
+    "files": [
+      "Compiler/src/tfuncs.jl",
+      "Compiler/test/effects.jl"
     ]
   },
   {
@@ -3725,6 +4975,18 @@
       "src/cgutils.cpp",
       "src/init.c",
       "src/julia.h"
+    ]
+  },
+  {
+    "sha": "6a32f7a427789306a0008646900a636a7d91f36e",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-03-22T21:03:40+09:00",
+    "subject": "effects: fix effects of atomic pointer operations (#57806)",
+    "pr_number": "57806",
+    "files": [
+      "Compiler/src/tfuncs.jl",
+      "Compiler/test/effects.jl",
+      "stdlib/REPL/test/replcompletions.jl"
     ]
   },
   {
@@ -3770,6 +5032,19 @@
     ]
   },
   {
+    "sha": "35e2886ff4b84060ca1df7930fb855e846476a93",
+    "author": "Jameson Nash",
+    "date": "2025-03-21T16:53:38-04:00",
+    "subject": "restore method count after redefinition to hide old definition (#57837)",
+    "pr_number": "57837",
+    "files": [
+      "Compiler/test/invalidation.jl",
+      "base/runtime_internals.jl",
+      "test/core.jl",
+      "test/reflection.jl"
+    ]
+  },
+  {
     "sha": "0bcc9cd928e8f749b52dbdb04db29bc8fc0f329b",
     "author": "Sam Schweigel",
     "date": "2025-03-21T13:52:54-07:00",
@@ -3782,6 +5057,17 @@
       "src/intrinsics.cpp",
       "src/runtime_intrinsics.c",
       "test/intrinsics.jl"
+    ]
+  },
+  {
+    "sha": "a9c654dbed35b89c3690838badcd12ac1f829463",
+    "author": "C\u00e9dric Belmant",
+    "date": "2025-03-21T18:19:49+01:00",
+    "subject": "Fix `fargs` handling for `form_partially_defined_struct` (#57849)",
+    "pr_number": "57849",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "Compiler/test/inference.jl"
     ]
   },
   {
@@ -4025,6 +5311,16 @@
     ]
   },
   {
+    "sha": "28d3bd56d36ea6032027794ccc17dd5c7d0730ab",
+    "author": "Jameson Nash",
+    "date": "2025-03-13T09:53:25-04:00",
+    "subject": "inference: exclude uncached frames from callstack (#57743)",
+    "pr_number": "57743",
+    "files": [
+      "Compiler/src/inferencestate.jl"
+    ]
+  },
+  {
     "sha": "96eb8762cabdb2a932d9ca3531784472d7fc29e7",
     "author": "Gabriel Baraldi",
     "date": "2025-03-12T15:04:16-03:00",
@@ -4034,6 +5330,30 @@
       "src/llvm-gc-interface-passes.h",
       "src/llvm-late-gc-lowering.cpp",
       "test/llvmpasses/late-lower-gc-sret.ll"
+    ]
+  },
+  {
+    "sha": "ce747fe7aad49e80b25b49d160787e605773ac54",
+    "author": "Neven Sajko",
+    "date": "2025-03-12T18:52:01+01:00",
+    "subject": "Compiler: abstract calls: type assert to help stability (#57582)",
+    "pr_number": "57582",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl"
+    ]
+  },
+  {
+    "sha": "0322b95c53301f8c9150299e73299d28260389de",
+    "author": "Shuhei Kadowaki",
+    "date": "2025-03-12T16:04:45+09:00",
+    "subject": "inference: avoid creating `PartialStruct` that never exists at runtime (#57720)",
+    "pr_number": "57720",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "Compiler/src/tfuncs.jl",
+      "Compiler/src/typelattice.jl",
+      "Compiler/test/inference.jl",
+      "base/coreir.jl"
     ]
   },
   {
@@ -4050,6 +5370,16 @@
     ]
   },
   {
+    "sha": "885b1cd875f101f227b345f681cc36879124d80d",
+    "author": "Neven Sajko",
+    "date": "2025-03-11T17:03:43+01:00",
+    "subject": "Compiler/ssair/passes: `_lift_svec_ref`: improve type stability (#57633)",
+    "pr_number": "57633",
+    "files": [
+      "Compiler/src/ssair/passes.jl"
+    ]
+  },
+  {
     "sha": "840923ac7cd4471603a833b1a1a706f23866b75f",
     "author": "Roman Pi\u0161l",
     "date": "2025-03-11T16:48:32+01:00",
@@ -4060,6 +5390,16 @@
     ]
   },
   {
+    "sha": "b1fffb06c8ea49ac8298999f057e456fb500ab01",
+    "author": "Neven Sajko",
+    "date": "2025-03-10T14:25:21+01:00",
+    "subject": "Compiler: `abstract_apply`: declare type of two closure captures (#57684)",
+    "pr_number": "57684",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl"
+    ]
+  },
+  {
     "sha": "806cb2b9c3b6a6e44c848a18964dcfecf32ae3a0",
     "author": "Bart Janssens",
     "date": "2025-03-08T16:39:32+01:00",
@@ -4067,6 +5407,17 @@
     "pr_number": "57681",
     "files": [
       "src/gc-interface.h"
+    ]
+  },
+  {
+    "sha": "7ef92c8876a82fc0a649a1d964a78bbf0782a704",
+    "author": "Cody Tapscott",
+    "date": "2025-03-07T17:43:53-05:00",
+    "subject": "typeinfer: Add `force_enable_inference` to override Module-level inference settings (#57653)",
+    "pr_number": "57653",
+    "files": [
+      "Compiler/src/typeinfer.jl",
+      "Compiler/src/types.jl"
     ]
   },
   {
@@ -4107,6 +5458,18 @@
     ]
   },
   {
+    "sha": "a001847c3eba84e8e5ef93dc7a52e90f320cb1dd",
+    "author": "Cody Tapscott",
+    "date": "2025-03-05T20:58:10-05:00",
+    "subject": "Compiler: Fix pre-compilation as separate package (#57650)",
+    "pr_number": "57650",
+    "files": [
+      "Compiler/src/Compiler.jl",
+      "Compiler/src/typeinfer.jl",
+      "Compiler/src/verifytrim.jl"
+    ]
+  },
+  {
     "sha": "e950915a437ec5f06328392d4c4eb1cbdffef660",
     "author": "Max Horn",
     "date": "2025-03-05T05:04:19+01:00",
@@ -4114,6 +5477,26 @@
     "pr_number": "57564",
     "files": [
       "src/julia.h"
+    ]
+  },
+  {
+    "sha": "c2370b315bf28f4dc0665717f5a53dcec2d8fdca",
+    "author": "C\u00e9dric Belmant",
+    "date": "2025-03-04T05:33:39+01:00",
+    "subject": "Sink CodeInfo transformation into `transform_result_for_cache`, continued (#57375)",
+    "pr_number": "57375",
+    "files": [
+      "Compiler/extras/CompilerDevTools/src/CompilerDevTools.jl",
+      "Compiler/src/optimize.jl",
+      "Compiler/src/ssair/inlining.jl",
+      "Compiler/src/ssair/ir.jl",
+      "Compiler/src/ssair/passes.jl",
+      "Compiler/src/typeinfer.jl",
+      "Compiler/test/AbstractInterpreter.jl",
+      "Compiler/test/irpasses.jl",
+      "doc/src/devdocs/inference.md",
+      "stdlib/REPL/src/REPLCompletions.jl",
+      "test/precompile_absint2.jl"
     ]
   },
   {
@@ -4302,6 +5685,19 @@
     ]
   },
   {
+    "sha": "f5ce2497208d4b957530125ca1a46cc88ee91345",
+    "author": "Neven Sajko",
+    "date": "2025-02-28T08:25:10+01:00",
+    "subject": "Compiler: avoid type instability in access to `PartialStruct` field (#57553)",
+    "pr_number": "57553",
+    "files": [
+      "Compiler/src/Compiler.jl",
+      "Compiler/src/typeinfer.jl",
+      "Compiler/src/typelattice.jl",
+      "Compiler/src/typelimits.jl"
+    ]
+  },
+  {
     "sha": "8f00a51f074e5442546d48ba5d8f2346ed7f2a8c",
     "author": "Keno Fischer",
     "date": "2025-02-28T02:00:41-05:00",
@@ -4310,6 +5706,19 @@
     "files": [
       "src/module.c",
       "test/syntax.jl"
+    ]
+  },
+  {
+    "sha": "edf1cd0cd56ba0a88bf738d54bedaef177a54079",
+    "author": "C\u00e9dric Belmant",
+    "date": "2025-02-28T05:21:44+01:00",
+    "subject": "CompilerDevTools: add proof of concept for caching runtime calls (#57193)",
+    "pr_number": "57193",
+    "files": [
+      "Compiler/extras/CompilerDevTools/src/CompilerDevTools.jl",
+      "Compiler/extras/CompilerDevTools/test/runtests.jl",
+      "Compiler/extras/CompilerDevTools/test/testpkg.jl",
+      "test/choosetests.jl"
     ]
   },
   {
@@ -4414,6 +5823,21 @@
     "files": [
       "contrib/juliac-buildscript.jl",
       "src/staticdata.c"
+    ]
+  },
+  {
+    "sha": "0366a2a5716193c00a6f447758551391e1f3da5a",
+    "author": "Jameson Nash",
+    "date": "2025-02-27T11:18:40-05:00",
+    "subject": "[Compiler] fix some cycle_fix_limited usage (#57545)",
+    "pr_number": "57545",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "Compiler/src/inferenceresult.jl",
+      "Compiler/src/inferencestate.jl",
+      "Compiler/src/ssair/irinterp.jl",
+      "Compiler/src/typeinfer.jl",
+      "Compiler/src/types.jl"
     ]
   },
   {
@@ -4757,6 +6181,19 @@
     ]
   },
   {
+    "sha": "9d2e9ed8a275f770994488ec3e4bd3f04b9a229e",
+    "author": "C\u00e9dric Belmant",
+    "date": "2025-02-18T00:53:00+01:00",
+    "subject": "Support adding `CodeInstance`s to JIT for interpreters defining a codegen cache (#57272)",
+    "pr_number": "57272",
+    "files": [
+      "Compiler/extras/CompilerDevTools/src/CompilerDevTools.jl",
+      "Compiler/src/typeinfer.jl",
+      "Compiler/src/types.jl",
+      "Compiler/test/AbstractInterpreter.jl"
+    ]
+  },
+  {
     "sha": "7c89aba267313b54c5420da13b088bed239aa196",
     "author": "Gabriel Baraldi",
     "date": "2025-02-17T18:28:06-03:00",
@@ -4865,6 +6302,16 @@
     ]
   },
   {
+    "sha": "88b292d11027c3c8b2cd4b66e1f348affd24d761",
+    "author": "Keno Fischer",
+    "date": "2025-02-15T03:13:17-05:00",
+    "subject": "Compiler: Fix check for IRShow definedness (#57420)",
+    "pr_number": "57420",
+    "files": [
+      "Compiler/src/ssair/verify.jl"
+    ]
+  },
+  {
     "sha": "b27a24acbe831c3fab07828dba15fe149f05e486",
     "author": "Keno Fischer",
     "date": "2025-02-15T02:54:02-05:00",
@@ -4956,6 +6403,17 @@
     "files": [
       "src/julia.h",
       "src/module.c"
+    ]
+  },
+  {
+    "sha": "db874ff6529d475834c83da3c7e202957ca4f6d6",
+    "author": "Jameson Nash",
+    "date": "2025-02-13T12:10:12-05:00",
+    "subject": "Compiler: fix unsoundness of getfield_tfunc on Tuple Types (#57275)",
+    "pr_number": "57275",
+    "files": [
+      "Compiler/src/typeutils.jl",
+      "Compiler/test/inline.jl"
     ]
   },
   {
@@ -5071,6 +6529,17 @@
     ]
   },
   {
+    "sha": "53431309e20eb057709a4f0d4de5663f4a233afd",
+    "author": "Sam Schweigel",
+    "date": "2025-02-10T14:20:43-08:00",
+    "subject": "Fix getfield_tfunc when order or boundscheck is Vararg (#57293)",
+    "pr_number": "57293",
+    "files": [
+      "Compiler/src/tfuncs.jl",
+      "Compiler/test/inference.jl"
+    ]
+  },
+  {
     "sha": "8c62f42947ee01fb17d1baf8c5e953fb3516b31f",
     "author": "Keno Fischer",
     "date": "2025-02-10T08:31:20-05:00",
@@ -5100,6 +6569,17 @@
     ]
   },
   {
+    "sha": "b682f496bc3fa81f8ee488b50245275f24f5e7db",
+    "author": "C\u00e9dric Belmant",
+    "date": "2025-02-08T05:15:25+01:00",
+    "subject": "Inference: propagate struct initialization info on `setfield!` (#57222)",
+    "pr_number": "57222",
+    "files": [
+      "Compiler/src/abstractinterpretation.jl",
+      "Compiler/test/irpasses.jl"
+    ]
+  },
+  {
     "sha": "4ebb50b6a0445b6ecdd74374c3999da5b3f33b9d",
     "author": "Shuhei Kadowaki",
     "date": "2025-02-08T13:14:56+09:00",
@@ -5118,6 +6598,31 @@
     "pr_number": "57209",
     "files": [
       "src/codegen.cpp"
+    ]
+  },
+  {
+    "sha": "778e07906923fdf4966000983135901e11540109",
+    "author": "Keno Fischer",
+    "date": "2025-02-07T15:09:29-05:00",
+    "subject": "Add explicit imports for types and fix bugs (#57302)",
+    "pr_number": "57302",
+    "files": [
+      "Compiler/src/Compiler.jl",
+      "base/Base_compiler.jl",
+      "base/bool.jl",
+      "base/char.jl",
+      "base/coreir.jl",
+      "base/deprecated.jl",
+      "base/filesystem.jl",
+      "base/float.jl",
+      "base/gmp.jl",
+      "base/hamt.jl",
+      "base/mpfr.jl",
+      "base/multidimensional.jl",
+      "base/namedtuple.jl",
+      "base/refpointer.jl",
+      "base/strings/basic.jl",
+      "base/tuple.jl"
     ]
   },
   {

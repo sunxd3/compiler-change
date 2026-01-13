@@ -10,6 +10,9 @@ from typing import Iterable, List
 
 DEFAULT_COMPILER_PATHS = [
     "src/",
+    "Compiler/",
+    "JuliaLowering/",
+    "JuliaSyntax/",
     "compiler/",
     "base/compiler/",
     "base/inference/",

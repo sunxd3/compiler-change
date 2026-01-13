@@ -23,6 +23,9 @@ By default, the script considers the following paths compiler-related:
 
 ```
 src/
+Compiler/
+JuliaLowering/
+JuliaSyntax/
 compiler/
 base/compiler/
 base/inference/
