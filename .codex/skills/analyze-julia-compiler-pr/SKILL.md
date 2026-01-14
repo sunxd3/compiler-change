@@ -346,7 +346,55 @@ compile_time: "Slight extra work"
 compile_time: |
   O(n) tree walk per lambda body where n = AST nodes
   One additional pass after analyze_variables!, before closure_conversion
-  Expected: <5% increase in lowering time for typical functions
+  ESTIMATED: <5% increase in lowering time for typical functions
+```
+
+Label claims as `ESTIMATED` or `MEASURED` (with benchmark link).
+
+### 11. Add line-linked URLs to evidence
+
+Every evidence item should include a direct GitHub URL to the exact lines:
+
+```yaml
+evidence:
+  - source: "code"
+    path: "JuliaLowering/src/closure_conversion.jl"
+    loc: "304-316"
+    url: "https://github.com/JuliaLang/julia/blob/8ca9bc66ed/JuliaLowering/src/closure_conversion.jl#L304-L316"
+    snippet: |
+      function is_boxed(binfo::BindingInfo)
+          ...
+      end
+```
+
+Build URL from: `https://github.com/JuliaLang/julia/blob/{merge_commit_sha}/{path}#L{start}-L{end}`
+
+### 12. Annotate IR snippets to highlight key behavior
+
+In test IR output, add comments showing what to look for:
+
+```yaml
+snippet: |
+  # IR showing NO Box - direct slot capture:
+  slots: [slot₁/#self#(!read) slot₂/cond slot₃/y(single_assign)]  # <-- single_assign = no box
+  4   (= slot₃/y 1)
+  8   (new %₇ slot₃/y)  # <-- captures slot directly, not Core.Box
+```
+
+### 13. Cite actual tooling usage sites
+
+**BAD:**
+```yaml
+affected_tools: ["JET", "IRTools"]
+```
+
+**GOOD:**
+```yaml
+affected_tools:
+  - tool: "JET"
+    usage: "JET.jl reads BindingInfo.is_captured in src/abstractinterpret/inferenceerrorreport.jl"
+  - tool: "IRTools"
+    usage: "IRTools inspects closure field layout in src/reflection/utils.jl"
 ```
 
 ## Key Questions Per PR
@@ -377,7 +425,10 @@ Before writing the analysis file, verify:
 - [ ] Line numbers in `loc` fields are accurate and verifiable
 - [ ] merge_commit_sha included in PR metadata
 - [ ] Compatibility section names specific fields/APIs, not vague warnings
-- [ ] Performance claims quantified or bounded (O(n), % estimate)
+- [ ] Performance claims labeled ESTIMATED or MEASURED
+- [ ] Evidence includes line-linked GitHub URLs (blob/{sha}/path#L1-L10)
+- [ ] IR snippets annotated with comments showing key behavior
+- [ ] Tooling impact cites actual usage sites, not just tool names
 - [ ] Output is valid YAML (validate before writing)
 
 ## Output Format
