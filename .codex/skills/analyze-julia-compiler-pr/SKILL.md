@@ -13,8 +13,30 @@ Analyze Julia compiler PRs to generate structured changelog entries for downstre
 
 - PR cache: `pr-archive/JuliaLang_julia/`
 - Compiler PRs list: `pr-archive/JuliaLang_julia/compiler_prs.json`
-- Analysis output: `analyses/`
-- Schema: `analysis-schema.json`
+- Analysis output: `analyses/pr_{number}.yaml` (per-PR file)
+- Schema: `references/analysis-schema.json`
+
+## Setup: Clone Julia Repository
+
+**IMPORTANT:** Before analyzing PRs, clone the Julia repository to examine full code context (not just diffs):
+
+```bash
+# Clone Julia repo if not present
+if [ ! -d "julia" ]; then
+  git clone --depth 100 https://github.com/JuliaLang/julia.git julia
+fi
+
+# Checkout the merge commit for a specific PR
+cd julia
+git fetch origin pull/{PR_NUMBER}/merge:pr-{PR_NUMBER}
+git checkout pr-{PR_NUMBER}
+```
+
+This enables:
+- Reading full file context around changed lines
+- Tracing function call sites and callers
+- Understanding data structures being modified
+- Finding secondary effects not visible in the diff alone
 
 ## Compiler Pipeline (how changes propagate)
 
@@ -139,15 +161,48 @@ analysis:
    Which PRs might affect OpaqueClosure behavior?
    ```
 
-## Fetching PR Diffs
+## Analysis Workflow
 
-To get full diff content:
+For each PR analysis, follow these steps:
+
+### Step 1: Setup Julia repo and checkout PR
 ```bash
-# Using gh CLI
-gh pr view 59413 --repo JuliaLang/julia --json files,body,title
+# Clone if needed (shallow clone for speed)
+[ ! -d "julia" ] && git clone --depth 100 https://github.com/JuliaLang/julia.git julia
 
-# Or fetch diff directly
-curl -L https://github.com/JuliaLang/julia/pull/59413.diff
+# Fetch and checkout the specific PR
+cd julia
+git fetch origin pull/60567/merge:pr-60567
+git checkout pr-60567
+```
+
+### Step 2: Read cached PR metadata
+```bash
+cat pr-archive/JuliaLang_julia/pr_60567.json
+```
+
+### Step 3: Examine FULL code context (not just diff)
+This is critical for finding secondary effects:
+```bash
+# Read complete modified files
+cat julia/JuliaLowering/src/closure_conversion.jl
+
+# Find all callers of a modified function
+rg "analyze_lambda_vars" julia/
+
+# Trace struct usage across codebase
+rg "MethodMatchTarget" julia/Compiler/
+
+# Check test files for expected behavior
+cat julia/JuliaLowering/test/closures.jl
+```
+
+### Step 4: Write analysis to per-PR output file
+```bash
+# Output path: analyses/pr_{number}.yaml
+# Per-PR files allow parallel analysis without merge conflicts
+mkdir -p analyses
+# Write YAML analysis to analyses/pr_60567.yaml
 ```
 
 ## Key Questions Per PR
