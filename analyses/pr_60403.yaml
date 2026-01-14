@@ -1,0 +1,108 @@
+schema_version: "1.0"
+pr:
+  number: 60403
+  title: "JuliaSyntax:force specialize on function in `parse_brackets`"
+  url: "https://github.com/JuliaLang/julia/pull/60403"
+  author: "KristofferC"
+  labels:
+    - "backport 1.12"
+    - "backport 1.13"
+  merged_at: "2025-12-17T17:56:23Z"
+  merge_commit_sha: "b34261b5d099153c7d454588332f822ddcb12ea9"
+  diff_url: "https://github.com/JuliaLang/julia/pull/60403.diff"
+scope:
+  files_touched:
+    - "JuliaSyntax/src/julia/parser.jl"
+  components:
+    - "JuliaSyntax"
+  pipeline_stages:
+    - "Parsing"
+analysis:
+  intent:
+    summary: "Force specialization on the `after_parse` callable passed to `parse_brackets` so bracket parsing avoids heuristic despecialization (notably when default-argument wrappers call into the parser), reducing REPL lag after heavy package loads."
+    issue_links: []
+  direct_changes:
+    - summary: "`parse_brackets` now uses a parametric callable type for `after_parse`, enabling specialization on the specific closure passed by each caller."
+      component: "JuliaSyntax parser"
+      evidence:
+        - source: "code"
+          path: "JuliaSyntax/src/julia/parser.jl"
+          loc: "3192-3199"
+          url: "https://github.com/JuliaLang/julia/blob/b34261b5d099153c7d454588332f822ddcb12ea9/JuliaSyntax/src/julia/parser.jl#L3192-L3199"
+          snippet: |
+            function parse_brackets(after_parse::F,
+                                    ps::ParseState, closing_kind, generator_is_last=true) where {F}
+                ps = ParseState(ps, range_colon_enabled=true,
+                                space_sensitive=false,
+                                where_enabled=true,
+                                whitespace_newline=true)
+                params_positions = acquire_positions(ps.stream)
+                last_eq_before_semi = 0
+    - summary: "Callers pass in distinct `do`-block closures that now specialize independently, covering parse-unary, paren, and other bracketed forms."
+      component: "JuliaSyntax parser"
+      evidence:
+        - source: "rg"
+          path: "JuliaSyntax/src/julia/parser.jl"
+          loc: "1275-3315"
+          url: "https://github.com/JuliaLang/julia/blob/b34261b5d099153c7d454588332f822ddcb12ea9/JuliaSyntax/src/julia/parser.jl#L1275-L3315"
+          snippet: |
+            1275:        opts = parse_brackets(ps, K")") do had_commas, had_splat, num_semis, num_subexprs
+            2218:            opts = parse_brackets(ps, K")") do had_commas, had_splat, num_semis, num_subexprs
+            2764:    parse_brackets(ps, closer, false) do _, _, _, _
+            2780:    opts = parse_brackets(ps, closer) do _, _, _, num_subexprs
+            3133:        opts = parse_brackets(ps, K")") do had_commas, had_splat, num_semis, num_subexprs
+            3315:                opts = parse_brackets(ps, K")") do had_commas, had_splat, num_semis, num_subexprs
+    - summary: "Behavioral expectations for bracket parsing remain validated by existing parser tests (no syntax changes expected)."
+      component: "JuliaSyntax tests"
+      evidence:
+        - source: "code"
+          path: "JuliaSyntax/test/parser.jl"
+          loc: "388-399"
+          url: "https://github.com/JuliaLang/julia/blob/b34261b5d099153c7d454588332f822ddcb12ea9/JuliaSyntax/test/parser.jl#L388-L399"
+          snippet: |
+            # calls with brackets
+            "f(a,b)"  => "(call f a b)"
+            "f(a,)"   => "(call-, f a)"
+            "f(a=1; b=2)" => "(call f (= a 1) (parameters (= b 2)))"
+            "f(a; b; c)" => "(call f a (parameters b) (parameters c))"
+            "(a=1)()" =>  "(call (parens (= a 1)))"
+            "f (a)" => "(call f (error-t) a)"
+            "@x(a, b)"   =>  "(macrocall-p (macro_name x) a b)"
+            "@x(a, b,)"  =>  "(macrocall-p-, (macro_name x) a b)"
+            "A.@x(y)"    =>  "(macrocall-p (. A (macro_name x)) y)"
+            "A.@x(y).z"  =>  "(. (macrocall-p (. A (macro_name x)) y) z)"
+            "f(y for x = xs; a)" => "(call f (generator y (iteration (in x xs))) (parameters a))"
+  secondary_effects:
+    - effect: "Parser call-sites now get specialized `parse_brackets` instantiations per closure, reducing dynamic dispatch in bracket parsing hot paths (notably `parse_unary`)."
+      mechanism: |
+        parse_unary(ps::ParseState)  [parser.jl:1191]
+          -> parse_brackets(ps, K")") do ... end  [parser.jl:1275]
+          -> after_parse closure specializes via parse_brackets(after_parse::F)  [parser.jl:3192]
+          -> opts influences call-vs-block parsing and operator precedence  [parser.jl:1276-1283]
+      downstream_surfaces:
+        - "REPL parsing latency during heavy package loads"
+        - "JuliaSyntax-based tooling that repeatedly parses bracketed call forms"
+      likelihood: "high"
+      impact: "medium"
+  compatibility:
+    internal_api:
+      - field: "parse_brackets(after_parse::F) where {F}"
+        change: "Callable argument now specialized by concrete closure type instead of `Function`, increasing method specialization for JuliaSyntax internals."
+        affected_tools:
+          - tool: "JuliaSyntax internal callers"
+            usage: "`parse_unary` and other parser entry points pass `do`-block closures to `parse_brackets`."
+    behavioral: []
+  performance:
+    compile_time:
+      - impact: "ESTIMATED: Slight increase in method specialization count for parser entry points because each distinct closure gets a dedicated `parse_brackets` instantiation."
+    runtime:
+      - impact: "ESTIMATED: Reduced dynamic dispatch in bracket parsing hot paths, improving REPL responsiveness after loading large packages (as described in PR motivation)."
+  risk:
+    level: "low"
+    rationale:
+      - "Change is signature-level specialization only; parse logic and tests for bracket syntax remain unchanged."
+      - "Affected surface is JuliaSyntax internal parsing; no user-facing syntax semantics are altered."
+  open_questions:
+    - "Does the increased specialization materially raise method cache size for long-lived JuliaSyntax sessions?"
+  recommendations:
+    - "Monitor parser-related precompile and REPL latency to confirm the expected responsiveness improvement without significant code size growth."

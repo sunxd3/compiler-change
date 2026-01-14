@@ -1,0 +1,138 @@
+schema_version: "1.0"
+pr:
+  number: 60619
+  title: "[JuliaLowering] Fix-up handling of `stmt_offset` in `K\"enter\"`"
+  url: "https://github.com/JuliaLang/julia/pull/60619"
+  author: "topolarity"
+  labels:
+    - "JuliaLowering"
+  merged_at: "2026-01-09T21:55:02Z"
+  merge_commit_sha: "e61a047e1c108ff555ee93cea27f7c5c1781484a"
+  diff_url: "https://github.com/JuliaLang/julia/pull/60619.diff"
+scope:
+  files_touched:
+    - "JuliaLowering/src/eval.jl"
+    - "JuliaLowering/test/exceptions.jl"
+  components:
+    - "JuliaLowering"
+  pipeline_stages:
+    - "Lowering"
+    - "CodeInfo"
+analysis:
+  intent:
+    summary: "Fix lowering of K\"enter\" so catch targets include the statement offset, restoring correct try/catch behavior in JuliaLowering (e.g., REPL)."
+    issue_links:
+      - "https://github.com/JuliaLang/JuliaLowering.jl/issues/135"
+  direct_changes:
+    - summary: "When translating K\"enter\" nodes, add stmt_offset to the catch label so Core.EnterNode points at the correct statement index."
+      component: "JuliaLowering/src/eval.jl"
+      evidence:
+        - source: "code"
+          path: "JuliaLowering/src/eval.jl"
+          loc: "381-389"
+          url: "https://github.com/JuliaLang/julia/blob/e61a047e1c108ff555ee93cea27f7c5c1781484a/JuliaLowering/src/eval.jl#L381-L389"
+          snippet: |
+            elseif k == K"goto"
+                Core.GotoNode(ex[1].id + stmt_offset)
+            elseif k == K"gotoifnot"
+                Core.GotoIfNot(_to_lowered_expr(ex[1], stmt_offset), ex[2].id + stmt_offset)
+            elseif k == K"enter"
+                catch_idx = ex[1].id + stmt_offset
+                numchildren(ex) == 1 ?
+                    Core.EnterNode(catch_idx) :
+                    Core.EnterNode(catch_idx, _to_lowered_expr(ex[2], stmt_offset))
+        - source: "rg"
+          path: "JuliaLowering/src/eval.jl"
+          loc: "253-399"
+          url: "https://github.com/JuliaLang/julia/blob/e61a047e1c108ff555ee93cea27f7c5c1781484a/JuliaLowering/src/eval.jl#L253-L399"
+          snippet: |
+            $ rg -n "stmt_offset" JuliaLowering/src/eval.jl
+            253:    stmt_offset = length(stmts)
+            255:        push!(stmts, _to_lowered_expr(stmt, stmt_offset))
+            330:function _to_lowered_expr(ex::SyntaxTree, stmt_offset::Int)
+            366:        Core.SSAValue(ex.var_id + stmt_offset)
+            368:        Core.ReturnNode(_to_lowered_expr(ex[1], stmt_offset))
+            382:        Core.GotoNode(ex[1].id + stmt_offset)
+            384:        Core.GotoIfNot(_to_lowered_expr(ex[1], stmt_offset), ex[2].id + stmt_offset)
+            386:        catch_idx = ex[1].id + stmt_offset
+            389:            Core.EnterNode(catch_idx, _to_lowered_expr(ex[2], stmt_offset))
+            391:        cs = map(e->_to_lowered_expr(e, stmt_offset), children(ex))
+            397:        Core.NewvarNode(_to_lowered_expr(ex[1], stmt_offset))
+            399:        args = map(e->_to_lowered_expr(e, stmt_offset), children(ex))
+    - summary: "Add a try/catch test with @nospecialize to validate correct exception handling under JuliaLowering include_string." 
+      component: "JuliaLowering/test/exceptions.jl"
+      evidence:
+        - source: "test"
+          path: "JuliaLowering/test/exceptions.jl"
+          loc: "338-353"
+          url: "https://github.com/JuliaLang/julia/blob/e61a047e1c108ff555ee93cea27f7c5c1781484a/JuliaLowering/test/exceptions.jl#L338-L353"
+          snippet: |
+            @test JuliaLowering.include_string(test_mod, """
+            begin
+                function f_try_catch_nospecialize(@nospecialize(cond))
+                    try
+                        cond && throw(ArgumentError(""))
+                    catch
+                        return 1
+                    end
+                    return 2
+                end
+                (
+                    f_try_catch_nospecialize(true),
+                    f_try_catch_nospecialize(false),
+                )
+            end
+            """) == (1,2)
+  secondary_effects:
+    - effect: "EnterNode catch targets now align with the shifted statement indices when extra statements (e.g., :meta :nospecialize) are inserted before user code, preventing mis-targeted catch blocks during CodeInfo execution."
+      mechanism: |
+        to_code_info(ex, slots, meta)  [eval.jl:220-257]
+          computes stmt_offset = length(stmts)
+          and pushes _to_lowered_expr(stmt, stmt_offset) for each lowered statement
+        -> _to_lowered_expr(ex, stmt_offset)  [eval.jl:330-389]
+          translates K"enter" into Core.EnterNode(catch_idx)
+          where catch_idx = ex[1].id + stmt_offset
+      downstream_surfaces:
+        - "Interpreter and runtime exception handling using Core.EnterNode"
+        - "JuliaLowering-based REPL evaluation paths"
+      likelihood: "high"
+      impact: "medium"
+  compatibility:
+    internal_api: []
+    behavioral:
+      - change: "Try/catch lowering for JuliaLowering include_string now yields correct catch control flow even when nospecialize metadata precedes statements."
+        evidence:
+          - source: "test"
+            path: "JuliaLowering/test/exceptions.jl"
+            loc: "338-353"
+            url: "https://github.com/JuliaLang/julia/blob/e61a047e1c108ff555ee93cea27f7c5c1781484a/JuliaLowering/test/exceptions.jl#L338-L353"
+            snippet: |
+              @test JuliaLowering.include_string(test_mod, """
+              begin
+                  function f_try_catch_nospecialize(@nospecialize(cond))
+                      try
+                          cond && throw(ArgumentError(""))
+                      catch
+                          return 1
+                      end
+                      return 2
+                  end
+                  (
+                      f_try_catch_nospecialize(true),
+                      f_try_catch_nospecialize(false),
+                  )
+              end
+              """) == (1,2)
+  performance:
+    compile_time:
+      - impact: "No measurable compile-time impact expected; change is a constant-time adjustment to catch index computation (ESTIMATED)."
+    runtime:
+      - impact: "No measurable runtime impact expected outside corrected exception target selection (ESTIMATED)."
+  risk:
+    level: "low"
+    rationale:
+      - "Change is localized to K\"enter\" lowering and only adjusts an index by the existing stmt_offset used for other control-flow nodes."
+      - "New test locks in corrected try/catch behavior with @nospecialize under JuliaLowering include_string." 
+  open_questions: []
+  recommendations:
+    - "Consider adding a targeted test that inspects the lowered CodeInfo EnterNode indices to catch future regressions in stmt_offset handling."

@@ -1,0 +1,142 @@
+schema_version: "1.0"
+pr:
+  number: 60416
+  title: "lowering: Fix `@nospecialize` on unnamed arguments"
+  url: "https://github.com/JuliaLang/julia/pull/60416"
+  author: "aviatesk"
+  labels: []
+  merged_at: "2026-01-07T17:50:29Z"
+  merge_commit_sha: "764725073af129a6423aeeca95fec1d8a221a2f1"
+  diff_url: "https://github.com/JuliaLang/julia/pull/60416.diff"
+scope:
+  files_touched:
+    - "src/julia-syntax.scm"
+    - "Compiler/test/inline.jl"
+  components:
+    - "JuliaSyntax"
+    - "Compiler.test"
+  pipeline_stages:
+    - "Parsing"
+    - "Lowering"
+analysis:
+  intent:
+    summary: "Ensure @nospecialize annotations on unnamed positional and keyword arguments are bound to the generated argument names during lowering."
+    issue_links:
+      - "https://github.com/JuliaLang/julia/issues/44428"
+  direct_changes:
+    - summary: "For keyword methods, fill in missing argument names inside @nospecialize metadata before extracting annotations, so the annotations reference the generated name rather than the placeholder."
+      component: "JuliaSyntax"
+      evidence:
+        - source: "code"
+          path: "src/julia-syntax.scm"
+          loc: "463-479"
+          url: "https://github.com/JuliaLang/julia/blob/764725073af129a6423aeeca95fec1d8a221a2f1/src/julia-syntax.scm#L463-L479"
+          snippet: |
+            (define (keywords-method-def-expr name sparams argl body rett)
+              (let* ((kargl (cdar argl))  ;; keyword expressions (= k v)
+                     ;; fill in missing argnames for nospecialize-wrapped args first,
+                     ;; so that annotations reference the correct generated names
+                     (kargl (map (lambda (a)
+                                   (if (nospecialize-meta? a)
+                                       (let ((inner (caddr a)))  ;; the (kw ...) expression
+                                         `(meta ,(cadr a) (,(car inner)
+                                                           ,(fill-missing-argname (cadr inner) #f)
+                                                           ,@(cddr inner))))
+                                       a))
+                                 kargl))
+                     (annotations (map (lambda (a) `(meta ,(cadr a) ,(arg-name (cadr (caddr a)))))
+                                       (filter nospecialize-meta? kargl)))
+                     (kargl (map (lambda (a)
+                                   (if (nospecialize-meta? a) (caddr a) a))
+                                 kargl))
+    - summary: "For positional arguments in function definitions, fill in missing argnames inside @nospecialize metadata before stripping the annotation and emitting meta nodes into the body."
+      component: "JuliaSyntax"
+      evidence:
+        - source: "code"
+          path: "src/julia-syntax.scm"
+          loc: "1214-1230"
+          url: "https://github.com/JuliaLang/julia/blob/764725073af129a6423aeeca95fec1d8a221a2f1/src/julia-syntax.scm#L1214-L1230"
+          snippet: |
+            ((eq? (car name) 'call)
+             (let* ((raw-typevars (or where '()))
+                    (sparams (map analyze-typevar raw-typevars))
+                    (argl    (cdr name))
+                    ;; fill in missing argnames for nospecialize-wrapped args first,
+                    ;; so that annotations reference the correct generated names
+                    (argl    (map (lambda (a)
+                                    (if (nospecialize-meta? a)
+                                        `(meta ,(cadr a) ,(fill-missing-argname (caddr a) #f))
+                                        a))
+                                  argl))
+                    ;; strip @nospecialize
+                    (annotations (map (lambda (a) `(meta ,(cadr a) ,(arg-name (caddr a))))
+                                      (filter nospecialize-meta? argl)))
+                    (body (insert-after-meta (caddr e) annotations))
+                    (argl (map (lambda (a)
+                                 (if (nospecialize-meta? a) (caddr a) a))
+                               argl))
+    - summary: "Add compiler test coverage asserting that @nospecialize on unnamed arguments forces invoke-based calls in typed IR."
+      component: "Compiler.test"
+      evidence:
+        - source: "test"
+          path: "Compiler/test/inline.jl"
+          loc: "2348-2362"
+          url: "https://github.com/JuliaLang/julia/blob/764725073af129a6423aeeca95fec1d8a221a2f1/Compiler/test/inline.jl#L2348-L2362"
+          snippet: |
+            # @nospecialize annotation on uunamed arguments
+            # https://github.com/JuliaLang/julia/issues/44428
+            @noinline _issue44428_1(@nospecialize _::Any) = println(Base.inferencebarrier(0))
+            @noinline _issue44428_2(@nospecialize ::Any) = println(Base.inferencebarrier(0))
+            @noinline _issue44428_3(@nospecialize _) = println(Base.inferencebarrier(0))
+            function issue44428(x)
+                _issue44428_1(x)
+                _issue44428_2(x)
+                _issue44428_3(x)
+            end
+            let src = code_typed1(issue44428, (Any,))
+                @test count(isinvoke(:_issue44428_1), src.code) == 1
+                @test count(isinvoke(:_issue44428_2), src.code) == 1
+                @test count(isinvoke(:_issue44428_3), src.code) == 1
+                @test count(x->Meta.isexpr(x,:call), src.code) == 0
+            end
+  secondary_effects:
+    - effect: "@nospecialize on unnamed positional arguments now reliably attaches to the synthesized argument name, preventing accidental specialization of those parameters."
+      mechanism: |
+        expand-function-def-  [src/julia-syntax.scm:1214-1230]
+          fills missing argnames inside (meta :nospecialize ...) forms
+        -> annotations extracted via (arg-name (caddr a)) and inserted into body
+           with insert-after-meta  [src/julia-syntax.scm:1225-1228]
+        -> lowering emits meta nodes that the compiler honors for specialization
+      downstream_surfaces:
+        - "Method specialization (inference uses @nospecialize meta)"
+        - "Inlining heuristics (invoke vs call selection)"
+      likelihood: "high"
+      impact: "medium"
+    - effect: "@nospecialize on unnamed keyword arguments is normalized before keyword method expansion, so annotations reference generated keyword arg symbols instead of placeholders."
+      mechanism: |
+        keywords-method-def-expr  [src/julia-syntax.scm:463-479]
+          rewrites (meta :nospecialize (kw name ...)) by filling missing argnames
+        -> annotations list is built from the rewritten keyword arguments
+        -> keyword-lowering uses these annotations when emitting methods
+      downstream_surfaces:
+        - "Keyword sorter dispatch (specialization hints)"
+        - "Method cache invalidation patterns for kw wrappers"
+      likelihood: "medium"
+      impact: "low"
+  compatibility:
+    internal_api: []
+    behavioral:
+      - "Typed IR for functions with unnamed @nospecialize arguments now uses invokes for those calls; prior to the fix, missing argnames could drop the annotation and produce direct calls."
+  performance:
+    compile_time:
+      - "ESTIMATED: O(n) additional map over arg lists in lowering for each function definition and keyword method; negligible compared to overall lowering cost."
+    runtime:
+      - "ESTIMATED: Restores expected de-specialization, which may reduce method proliferation and cache pressure in code that used unnamed @nospecialize arguments."
+  risk:
+    level: "low"
+    rationale:
+      - "Changes are localized to argument list preprocessing in the scheme lowerer and validated by new tests."
+  open_questions:
+    - "Do keyword sorter functions need explicit @nospecialize propagation beyond the annotation inserted in keywords-method-def-expr, especially for complex kwarg lowering paths?"
+  recommendations:
+    - "Downstream tools that inspect method IR for invoke vs call patterns (e.g., static analyzers) should add coverage for @nospecialize on unnamed args to match the new test behavior."
