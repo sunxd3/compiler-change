@@ -25,7 +25,10 @@ analysis:
     issue_links:
       - "https://github.com/JuliaLang/julia/issues/59911"
   direct_changes:
-    - summary: "Short-form function parsing now skips wrapping the RHS in `Expr(:block, ...)` when the LHS is a postfix quote (`Expr(Symbol("'"), ...)`), preserving the simpler `Expr(:(=), Expr(Symbol("'"), x), y)` shape."
+    - summary: >-
+        Short-form function parsing now skips wrapping the RHS in `Expr(:block, ...)`
+        when the LHS is a postfix quote (`Expr(Symbol("'"), ...)`), preserving the
+        simpler `Expr(:(=), Expr(Symbol("'"), x), y)` shape.
       component: "JuliaSyntax Expr integration"
       evidence:
         - source: "code"
@@ -42,7 +45,9 @@ analysis:
                             args[2] = Expr(:block, a2)
                         end
                         retexpr.head = :(=)
-    - summary: "Added a test asserting that `x' = 1` parses to a plain `Expr(:(=), Expr(Symbol("'"), :x), 1)` without a block wrapper."
+    - summary: >-
+        Added a test asserting that `x' = 1` parses to a plain
+        `Expr(:(=), Expr(Symbol("'"), :x), 1)` without a block wrapper.
       component: "JuliaSyntax tests"
       evidence:
         - source: "test"

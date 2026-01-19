@@ -414,7 +414,7 @@ analysis:
           -> expand_kw_call(...)                    [desugaring.jl:1696-1712]
              builds kwcall path for lowered calls
       downstream_surfaces:
-        - "Macro expansion pipelines expecting K"=" nodes in SyntaxTree"
+        - 'Macro expansion pipelines expecting K"=" nodes in SyntaxTree'
         - "Keyword argument lowering (kwcall)"
         - "Expr-to-SyntaxTree compatibility paths"
       likelihood: "high"
