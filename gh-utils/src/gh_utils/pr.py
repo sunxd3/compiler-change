@@ -7,10 +7,8 @@ from .client import api_get, api_get_paginated
 if TYPE_CHECKING:
     from .cache import PRCache
 
-DEFAULT_REPO = "JuliaLang/julia"
 
-
-def get_tag_date(tag: str, repo: str = DEFAULT_REPO) -> str:
+def get_tag_date(tag: str, repo: str) -> str:
     """Get the commit date for a git tag.
 
     Args:
@@ -38,7 +36,7 @@ def get_tag_date(tag: str, repo: str = DEFAULT_REPO) -> str:
 
 def search_prs(
     query: str,
-    repo: str = DEFAULT_REPO,
+    repo: str,
     limit: int = 1000,
 ) -> list[dict[str, Any]]:
     """Search for PRs using GitHub search API.
@@ -72,7 +70,7 @@ def search_prs(
 def list_prs_between_dates(
     start_date: str,
     end_date: str,
-    repo: str = DEFAULT_REPO,
+    repo: str,
     limit: int = 1000,
 ) -> list[dict[str, Any]]:
     """Fetch PRs merged within a date range.
@@ -93,7 +91,7 @@ def list_prs_between_dates(
 def list_prs_between_tags(
     start_tag: str,
     end_tag: str,
-    repo: str = DEFAULT_REPO,
+    repo: str,
     limit: int = 1000,
 ) -> list[dict[str, Any]]:
     """Fetch PRs merged between two git tags.
@@ -117,7 +115,7 @@ def list_prs_between_tags(
     return list_prs_between_dates(start_date_only, end_date_only, repo, limit)
 
 
-def get_pr_details(pr_number: int, repo: str = DEFAULT_REPO) -> dict[str, Any]:
+def get_pr_details(pr_number: int, repo: str) -> dict[str, Any]:
     """Get detailed information about a specific PR.
 
     Args:
@@ -130,7 +128,7 @@ def get_pr_details(pr_number: int, repo: str = DEFAULT_REPO) -> dict[str, Any]:
     return api_get(f"/repos/{repo}/pulls/{pr_number}")
 
 
-def get_pr_files(pr_number: int, repo: str = DEFAULT_REPO) -> list[dict[str, Any]]:
+def get_pr_files(pr_number: int, repo: str) -> list[dict[str, Any]]:
     """Get the list of files changed in a PR.
 
     Args:
@@ -146,8 +144,8 @@ def get_pr_files(pr_number: int, repo: str = DEFAULT_REPO) -> list[dict[str, Any
 def fetch_prs_between_tags(
     start_tag: str,
     end_tag: str,
+    repo: str,
     cache: "PRCache | None" = None,
-    repo: str = DEFAULT_REPO,
     limit: int = 1000,
     force_refresh: bool = False,
 ) -> list[dict[str, Any]]:
