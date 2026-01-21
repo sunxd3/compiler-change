@@ -19,206 +19,86 @@ scope:
     - "Lowering"
 analysis:
   intent:
-    summary: "Tighten local-variable initialization paths in JuliaLowering desugaring routines (primarily for JET-friendly isdefined analysis) and remove unused loop bindings."
+    summary: "Improves isdefined-ness of local variables for JET-based analyses and removes unused variables. Four small refactors: (1) initialize iterstate to nothing for empty destructuring, (2) remove unused enumerate index in named tuple expansion, (3) add @isdefined guards for type_params/supertype in analyze_type_sig, (4) normalize nbits assignment in abstract/primitive type lowering."
     issue_links: []
   direct_changes:
-    - summary: "Avoid creating an unused iterstate binding when destructuring has zero LHS children by initializing iterstate to nothing for the empty case."
+    - summary: "Initialize iterstate to nothing when destructuring has zero LHS children, avoiding undefined local in empty destructuring case."
       component: "JuliaLowering/desugaring"
       evidence:
         - source: "code"
           path: "JuliaLowering/src/desugaring.jl"
-          loc: "280-312"
-          url: "https://github.com/JuliaLang/julia/blob/4f713be0b388a1f2bce33f4e96b77635a7393135/JuliaLowering/src/desugaring.jl#L280-L312"
+          loc: "280-282"
+          url: "https://github.com/JuliaLang/julia/blob/4f713be0b388a1f2bce33f4e96b77635a7393135/JuliaLowering/src/desugaring.jl#L280-L282"
           snippet: |
             function _destructure(ctx, assignment_srcref, stmts, lhs, rhs, is_const)
                 n_lhs = numchildren(lhs)
                 iterstate = n_lhs > 0 ? new_local_binding(ctx, rhs, "iterstate") : nothing
-
-                end_stmts = SyntaxList(ctx)
-                wrap(asgn) = is_const ? (@ast ctx assignment_srcref [K"const" asgn]) : asgn
-
-                i = 0
-                for lh in children(lhs)
-                    i += 1
-                    if kind(lh) == K"..."
-                        lh1 = if is_identifier_like(lh[1]) && !is_const
-                            lh[1]
-                        else
-                            lhs_tmp = ssavar(ctx, lh[1], "lhs_tmp")
-                            push!(end_stmts, expand_forms_2(ctx, wrap(@ast ctx lh[1] [K"=" lh[1] lhs_tmp])))
-                            lhs_tmp
-                        end
-                        if i == n_lhs
-                            # Slurping as last lhs, eg, for `zs` in
-                            #   (x, y, zs...) = rhs
-                            if kind(lh1) != K"Placeholder"
-                                push!(stmts, expand_forms_2(ctx,
-                                    @ast ctx assignment_srcref [K"="
-                                        lh1
-                                        [K"call"
-                                            "rest"::K"top"
-                                            rhs
-                                            if i > 1
-                                                iterstate
-                                            end
-                                        ]
-                                    ]
-                                ))
-                            end
-                        else
-                            # Slurping before last lhs. Eg, for `xs` in
-                            #   (xs..., y, z) = rhs
-                            # For this we call
-                            #   (xs, tail) = Base.split_rest(...)
-                            # then continue iteration with `tail` as new rhs.
-                            tail = ssavar(ctx, lh, "tail")
-                            push!(stmts,
-                                expand_forms_2(ctx,
-                                    lower_tuple_assignment(ctx,
-                                        assignment_srcref,
-                                        (lh1, tail),
-                                        @ast ctx assignment_srcref [K"call"
-                                            "split_rest"::K"top"
-                                            rhs
-                                            (n_lhs - i)::K"Integer"
-                                            if i > 1
-                                                iterstate
-                                            end
-                                        ]
-                                    )
-                                )
-                            )
-                            rhs = tail
-                            n_lhs = n_lhs - i
-                            i = 0
-    - summary: "Simplify named-tuple expansion loop by iterating directly over keyword entries (removing unused enumerate index)."
-      component: "JuliaLowering/desugaring"
-      evidence:
-        - source: "code"
+        - source: "diff"
           path: "JuliaLowering/src/desugaring.jl"
-          loc: "1614-1689"
-          url: "https://github.com/JuliaLang/julia/blob/4f713be0b388a1f2bce33f4e96b77635a7393135/JuliaLowering/src/desugaring.jl#L1614-L1689"
+          loc: "279-282"
+          url: "https://github.com/JuliaLang/julia/pull/60561/files#diff-ec952b0097a182bb41d8955ffe27fcadfd3922a1"
           snippet: |
-            function expand_named_tuple(ctx, ex, kws, eq_is_kw;
-                                        field_name="named tuple field",
-                                        element_name="named tuple element")
-                name_strs = Set{String}()
-                names = SyntaxList(ctx)
-                values = SyntaxList(ctx)
-                current_nt = nothing
-                for kw in kws
-                    k = kind(kw)
-                    appended_nt = nothing
-                    name = nothing
-                    if kind(k) == K"Identifier"
-                        # x  ==>  x = x
-                        name = to_symbol(ctx, kw)
-                        value = kw
-                    elseif k == K"kw" || (eq_is_kw && k == K"=")
-                        # syntax TODO: This should parse to K"kw"
-                        # x = a
-                        if kind(kw[1]) != K"Identifier" && kind(kw[1]) != K"Placeholder"
-                            throw(LoweringError(kw[1], "invalid $field_name name"))
-                        end
-                        if kind(kw[2]) == K"..."
-                            throw(LoweringError(kw[2], "`...` cannot be used in a value for a $field_name"))
-                        end
-                        name = to_symbol(ctx, kw[1])
-                        value = kw[2]
-                    elseif k == K"."
-                        # a.x ==> x=a.x
-                        if kind(kw[2]) != K"Symbol"
-                            throw(LoweringError(kw, "invalid $element_name"))
-                        end
-                        name = to_symbol(ctx, kw[2])
-                        value = kw
-                    elseif k == K"call" && is_infix_op_call(kw) && numchildren(kw) == 3 &&
-                            is_same_identifier_like(kw[1], "=>")
-                        # a=>b   ==>  $a=b
-                        appended_nt = _named_tuple_expr(ctx, kw, (kw[2],), (kw[3],))
-                        nothing, nothing
-                    elseif k == K"..."
-                        # args...  ==> splat pairs
-                        appended_nt = kw[1]
-                        if isnothing(current_nt) && isempty(names)
-                            # Must call merge to create NT from an initial splat
-                            current_nt = _named_tuple_expr(ctx, ex, (), ())
-                        end
-                        nothing, nothing
-                    else
-                        throw(LoweringError(kw, "Invalid $element_name"))
-                    end
-                    if !isnothing(name)
-                        if kind(name) == K"Symbol"
-                            name_str = name.name_val
-                            if name_str in name_strs
-                                throw(LoweringError(name, "Repeated $field_name name"))
-                            end
-                            push!(name_strs, name_str)
-                        end
-                        push!(names, name)
-                        push!(values, value)
-                    end
-                    if !isnothing(appended_nt)
-                        if !isempty(names)
-                            current_nt = _merge_named_tuple(ctx, ex, current_nt,
-                                                            _named_tuple_expr(ctx, ex, names, values))
-                            empty!(names)
-                            empty!(values)
-                        end
-                        current_nt = _merge_named_tuple(ctx, ex, current_nt, appended_nt)
-                    end
+            # BEFORE:
+            function _destructure(ctx, assignment_srcref, stmts, lhs, rhs, is_const)
+                n_lhs = numchildren(lhs)
+                if n_lhs > 0
+                    iterstate = new_local_binding(ctx, rhs, "iterstate")
                 end
-                if !isempty(names) || isnothing(current_nt)
-                    current_nt = _merge_named_tuple(ctx, ex, current_nt,
-                                                    _named_tuple_expr(ctx, ex, names, values))
-                end
-                @assert !isnothing(current_nt)
-                current_nt
-            end
-    - summary: "Ensure all locals in analyze_type_sig are defined before use by asserting name, type_params, and supertype are initialized, improving diagnostics for invalid type signatures."
+            # AFTER:
+            function _destructure(ctx, assignment_srcref, stmts, lhs, rhs, is_const)
+                n_lhs = numchildren(lhs)
+                iterstate = n_lhs > 0 ? new_local_binding(ctx, rhs, "iterstate") : nothing
+    - summary: "Remove unused enumerate index (i) in expand_named_tuple loop since the index was never used."
       component: "JuliaLowering/desugaring"
       evidence:
         - source: "code"
           path: "JuliaLowering/src/desugaring.jl"
-          loc: "3466-3493"
-          url: "https://github.com/JuliaLang/julia/blob/4f713be0b388a1f2bce33f4e96b77635a7393135/JuliaLowering/src/desugaring.jl#L3466-L3493"
+          loc: "1621"
+          url: "https://github.com/JuliaLang/julia/blob/4f713be0b388a1f2bce33f4e96b77635a7393135/JuliaLowering/src/desugaring.jl#L1621"
           snippet: |
-            function analyze_type_sig(ctx, ex)
-                k = kind(ex)
-                if k == K"Identifier"
-                    name = ex
-                    type_params = ()
-                    supertype = @ast ctx ex "Any"::K"core"
-                elseif k == K"curly" && numchildren(ex) >= 1 && kind(ex[1]) == K"Identifier"
-                    # name{type_params}
-                    name = ex[1]
-                    type_params = ex[2:end]
-                    supertype = @ast ctx ex "Any"::K"core"
-                elseif k == K"<:" && numchildren(ex) == 2
-                    if kind(ex[1]) == K"Identifier"
-                        name = ex[1]
-                        type_params = ()
-                        supertype = ex[2]
-                    elseif kind(ex[1]) == K"curly" && numchildren(ex[1]) >= 1 && kind(ex[1][1]) == K"Identifier"
-                        name = ex[1][1]
-                        type_params = ex[1][2:end]
-                        supertype = ex[2]
-                    end
-                end
-                @isdefined(name) || throw(LoweringError(ex, "invalid type signature"))
-                @isdefined(type_params) || throw(LoweringError(ex, "invalid type signature"))
-                @isdefined(supertype) || throw(LoweringError(ex, "invalid type signature"))
-
-                return (name, type_params, supertype)
-            end
-    - summary: "Normalize nbits assignment in abstract/primitive type lowering by defining it for both paths (abstract types set it to nothing)."
+            for kw in kws
+        - source: "diff"
+          path: "JuliaLowering/src/desugaring.jl"
+          loc: "1620-1621"
+          url: "https://github.com/JuliaLang/julia/pull/60561/files#diff-ec952b0097a182bb41d8955ffe27fcadfd3922a1"
+          snippet: |
+            # BEFORE:
+            for (i,kw) in enumerate(kws)
+            # AFTER:
+            for kw in kws
+    - summary: "Add @isdefined guards for type_params and supertype in analyze_type_sig to ensure all return values are defined before returning, improving JET analysis."
       component: "JuliaLowering/desugaring"
       evidence:
         - source: "code"
           path: "JuliaLowering/src/desugaring.jl"
-          loc: "3520-3548"
-          url: "https://github.com/JuliaLang/julia/blob/4f713be0b388a1f2bce33f4e96b77635a7393135/JuliaLowering/src/desugaring.jl#L3520-L3548"
+          loc: "3488-3492"
+          url: "https://github.com/JuliaLang/julia/blob/4f713be0b388a1f2bce33f4e96b77635a7393135/JuliaLowering/src/desugaring.jl#L3488-L3492"
+          snippet: |
+            @isdefined(name) || throw(LoweringError(ex, "invalid type signature"))
+            @isdefined(type_params) || throw(LoweringError(ex, "invalid type signature"))
+            @isdefined(supertype) || throw(LoweringError(ex, "invalid type signature"))
+
+            return (name, type_params, supertype)
+        - source: "diff"
+          path: "JuliaLowering/src/desugaring.jl"
+          loc: "3486-3492"
+          url: "https://github.com/JuliaLang/julia/pull/60561/files#diff-ec952b0097a182bb41d8955ffe27fcadfd3922a1"
+          snippet: |
+            # BEFORE (only checked name):
+            @isdefined(name) || throw(LoweringError(ex, "invalid type signature"))
+            return (name, type_params, supertype)
+            # AFTER (checks all three):
+            @isdefined(name) || throw(LoweringError(ex, "invalid type signature"))
+            @isdefined(type_params) || throw(LoweringError(ex, "invalid type signature"))
+            @isdefined(supertype) || throw(LoweringError(ex, "invalid type signature"))
+            return (name, type_params, supertype)
+    - summary: "Move nbits assignment outside if/else block in expand_abstract_or_primitive_type, using ternary to set nbits=nothing for abstract types."
+      component: "JuliaLowering/desugaring"
+      evidence:
+        - source: "code"
+          path: "JuliaLowering/src/desugaring.jl"
+          loc: "3520-3529"
+          url: "https://github.com/JuliaLang/julia/blob/4f713be0b388a1f2bce33f4e96b77635a7393135/JuliaLowering/src/desugaring.jl#L3520-L3529"
           snippet: |
             function expand_abstract_or_primitive_type(ctx, ex)
                 is_abstract = kind(ex) == K"abstract"
@@ -230,82 +110,94 @@ analysis:
                 end
                 nbits = is_abstract ? nothing : ex[2]
                 name, type_params, supertype = analyze_type_sig(ctx, ex[1])
-                typevar_names, typevar_stmts = expand_typevars(ctx, type_params)
-                newtype_var = ssavar(ctx, ex, "new_type")
-                @ast ctx ex [K"block"
-                    [K"scope_block"(scope_type=:hard)
-                        [K"block"
-                            [K"local" name]
-                            [K"always_defined" name]
-                            typevar_stmts...
-                            [K"="
-                                newtype_var
-                                [K"call"
-                                    (is_abstract ? "_abstracttype" : "_primitivetype")::K"core"
-                                    ctx.mod::K"Value"
-                                    name=>K"Symbol"
-                                    [K"call" "svec"::K"core" typevar_names...]
-                                    if !is_abstract
-                                        nbits
-                                    end
-                                ]
-                            ]
-                            [K"=" name newtype_var]
-                            [K"call" "_setsuper!"::K"core" newtype_var supertype]
-                            [K"call" "_typebody!"::K"core" false::K"Bool" name]
-                        ]
-                    ]
-                    [K"assert" "toplevel_only"::K"Symbol" [K"inert" ex] ]
-                    [K"global" name]
-                    [K"if"
-                        [K"&&"
-                            [K"call"
-                               "isdefinedglobal"::K"core"
-                               ctx.mod::K"Value"
-                               name=>K"Symbol"
-                               false::K"Bool"]
-                            [K"call" "_equiv_typedef"::K"core" name newtype_var]
-                        ]
+        - source: "diff"
+          path: "JuliaLowering/src/desugaring.jl"
+          loc: "3524-3529"
+          url: "https://github.com/JuliaLang/julia/pull/60561/files#diff-ec952b0097a182bb41d8955ffe27fcadfd3922a1"
+          snippet: |
+            # BEFORE (nbits only defined for primitive):
+            else
+                @assert kind(ex) == K"primitive"
+                @chk numchildren(ex) == 2
+                nbits = ex[2]
+            end
+            # AFTER (nbits always defined):
+            else
+                @assert kind(ex) == K"primitive"
+                @chk numchildren(ex) == 2
+            end
+            nbits = is_abstract ? nothing : ex[2]
   secondary_effects:
-    - effect: "Invalid type signatures now trigger LoweringError before any later use of uninitialized locals, improving static analyses that track variable definedness."
+    - effect: "JET and other static analysis tools can now track definedness of iterstate, type_params, supertype, and nbits locals without false positives."
       mechanism: |
-        analyze_type_sig(ctx, ex)  [desugaring.jl:3466-3492]
-          -> @isdefined(type_params) / @isdefined(supertype) checks for invalid type signatures
-          -> expand_abstract_or_primitive_type(ctx, ex)  [desugaring.jl:3520-3548]
-             consumes (name, type_params, supertype) for abstract/primitive definitions
-          -> expand_struct_def(ctx, ex, docs)  [desugaring.jl:4011]
-             consumes (struct_name, type_params, supertype) for struct definitions
+        All four changes follow the same pattern: ensuring local variables are always
+        assigned (even if to nothing) rather than conditionally defined.
+
+        _destructure(ctx, ...)  [desugaring.jl:280]
+          iterstate = n_lhs > 0 ? ... : nothing  # always defined
+
+        expand_named_tuple(ctx, ...)  [desugaring.jl:1621]
+          for kw in kws  # no unused (i, kw) binding
+
+        analyze_type_sig(ctx, ex)  [desugaring.jl:3488-3490]
+          @isdefined(type_params) check  # ensures defined before return
+          @isdefined(supertype) check    # ensures defined before return
+
+        expand_abstract_or_primitive_type(ctx, ex)  [desugaring.jl:3528]
+          nbits = is_abstract ? nothing : ex[2]  # always defined
       downstream_surfaces:
-        - "JET lowering analysis (tracks isdefined on locals in JuliaLowering IR)"
-        - "Custom lowering diagnostics that rely on consistent LoweringError paths"
+        - "JET.jl isdefined analysis on JuliaLowering code"
+        - "IDE tooling that relies on definedness tracking"
       likelihood: "high"
       impact: "low"
   compatibility:
     internal_api:
       - field: "JuliaLowering.analyze_type_sig return tuple (name, type_params, supertype)"
-        change: "Now guaranteed to throw LoweringError when type_params or supertype is not initialized, rather than leaving locals undefined."
+        change: "Now guaranteed to throw LoweringError if any of the three return values would be undefined. Previously only name was explicitly checked."
         affected_tools:
           - tool: "JET"
-            usage: "JET relies on JuliaLowering diagnostics for invalid syntax paths when analyzing isdefined-ness in lowered code."
+            usage: "JET.jl performs isdefined analysis on JuliaLowering code; these changes eliminate false positive warnings about potentially undefined locals."
     behavioral:
-      - change: "Error reporting for malformed type signatures consistently raises LoweringError without risking uninitialized locals."
-        impact: "Invalid type signature diagnostics match existing tests and remain `invalid type signature` but are now guarded for all locals."
+      - change: "No user-visible behavior change. All changes are internal code quality improvements that preserve existing semantics."
+        impact: "None - error messages and behavior unchanged."
   performance:
     compile_time:
-      - impact: "ESTIMATED: negligible. Additional @isdefined checks in analyze_type_sig are constant-time and only in type definition lowering."
+      - impact: "ESTIMATED: negligible. One additional @isdefined check per type signature lowering (constant-time). Ternary vs if-block is equivalent."
     runtime:
-      - impact: "ESTIMATED: none. Changes are in lowering-time only."
+      - impact: "ESTIMATED: none. Changes are in lowering-time only; generated IR is identical."
   risk:
     level: "low"
     rationale:
-      - "Edits are localized to JuliaLowering desugaring and do not change runtime code generation paths."
-      - "Behavioral changes are mostly tighter diagnostics and removal of unused bindings."
-  open_questions:
-    - "None."
+      - "Changes are purely cosmetic refactors for static analysis friendliness."
+      - "No semantic changes to generated IR or runtime behavior."
+      - "All changes preserve existing error messages and control flow."
+  open_questions: []
   recommendations:
-    - "No downstream action required; tooling that introspects lowering errors should see more consistently-defined locals."
+    - "No downstream action required. This is a code quality improvement for JET-based static analysis of JuliaLowering itself."
   evidence_tests:
-    - summary: "Invalid type signatures in abstract type definitions already assert `invalid type signature` in IR tests; stricter isdefined checks align with these error cases."
+    - summary: "Existing IR tests verify destructuring produces iterstate slot when n_lhs > 0."
+      source: "test"
+      path: "JuliaLowering/test/destructuring_ir.jl"
+      loc: "1-16"
+      url: "https://github.com/JuliaLang/julia/blob/4f713be0b388a1f2bce33f4e96b77635a7393135/JuliaLowering/test/destructuring_ir.jl#L1-L16"
+      snippet: |
+        ########################################
+        # Simple destructuring
+        let
+            (x,y) = as
+        end
+        #---------------------
+        1   TestMod.as
+        2   (call top.indexed_iterate %₁ 1)
+        3   (= slot₂/x (call core.getfield %₂ 1))
+        4   (= slot₁/iterstate (call core.getfield %₂ 2))
+        5   TestMod.as
+        6   slot₁/iterstate
+        7   (call top.indexed_iterate %₅ 2 %₆)
+        8   (= slot₃/y (call core.getfield %₇ 1))
+        9   TestMod.as
+        10  (return %₉)
+    - summary: "Invalid type signatures trigger LoweringError with 'invalid type signature' message."
       source: "test"
       path: "JuliaLowering/test/typedefs_ir.jl"
       loc: "258-280"
@@ -335,9 +227,23 @@ analysis:
         abstract type A() <: B end
         #            └───────┘ ── invalid type signature
   caller_search:
-    - summary: "Callers of analyze_type_sig used by type and struct definition lowering."
+    - summary: "Callers of _destructure - used by expand_assignment for tuple destructuring."
       source: "rg"
-      command: "rg \"analyze_type_sig\\(\" -n"
+      command: "rg '_destructure\\(' JuliaLowering/"
+      matches:
+        - "JuliaLowering/src/desugaring.jl:280:function _destructure(ctx, assignment_srcref, stmts, lhs, rhs, is_const)"
+        - "JuliaLowering/src/desugaring.jl:443:    _destructure(ctx, ex, stmts, lhs, rhs1, is_const)"
+    - summary: "Callers of expand_named_tuple - used for keyword args and named tuple literals."
+      source: "rg"
+      command: "rg 'expand_named_tuple\\(' JuliaLowering/"
+      matches:
+        - "JuliaLowering/src/desugaring.jl:1614:function expand_named_tuple(ctx, ex, kws, eq_is_kw;"
+        - "JuliaLowering/src/desugaring.jl:1698:        kw_container := expand_named_tuple(ctx, srcref, kws, false;"
+        - "JuliaLowering/src/desugaring.jl:4534:            expand_forms_2(ctx, expand_named_tuple(ctx, ex, children(ex[1]), true))"
+        - "JuliaLowering/src/desugaring.jl:4536:            expand_forms_2(ctx, expand_named_tuple(ctx, ex, children(ex), true))"
+    - summary: "Callers of analyze_type_sig - used by struct, abstract, and primitive type lowering."
+      source: "rg"
+      command: "rg 'analyze_type_sig\\(' JuliaLowering/"
       matches:
         - "JuliaLowering/src/desugaring.jl:3466:function analyze_type_sig(ctx, ex)"
         - "JuliaLowering/src/desugaring.jl:3529:    name, type_params, supertype = analyze_type_sig(ctx, ex[1])"
