@@ -17,6 +17,7 @@ scope:
     - "Compiler/test/effects.jl"
     - "Compiler/test/inference.jl"
     - "test/opaque_closure.jl"
+    - "base/boot.jl"
   components:
     - "Compiler.Core"
     - "Compiler.AbstractInterpretation"
@@ -40,32 +41,38 @@ analysis:
       evidence:
         - source: "code"
           path: "Compiler/src/opaque_closure.jl"
-          loc: "35-57"
-          url: "https://github.com/JuliaLang/julia/blob/ecee0f78474553f725b3856f1427d90c4afa2712/Compiler/src/opaque_closure.jl#L35-L57"
+          loc: "30-57"
+          url: "https://github.com/JuliaLang/julia/blob/ecee0f78474553f725b3856f1427d90c4afa2712/Compiler/src/opaque_closure.jl#L30-L57"
           snippet: |
-            ir = Core.Compiler.copy(ir)
-            # if the user didn't specify a definition MethodInstance or filename Symbol to use for the debuginfo, set a filename now
-            ir.debuginfo.def === nothing && (ir.debuginfo.def = :var"generated IR for OpaqueClosure")
-            nargtypes = length(ir.argtypes)
-            nargs = nargtypes-1
-            sig = compute_oc_signature(ir, nargs, isva)
-            rt = compute_ir_rettype(ir)
-            src = ccall(:jl_new_code_info_uninit, Ref{CodeInfo}, ())
-            if slotnames === nothing
-                src.slotnames = fill(:none, nargtypes)
-            else
-                length(slotnames) == nargtypes || error("mismatched `argtypes` and `slotnames`")
-                src.slotnames = slotnames
+            function Core.OpaqueClosure(ir::IRCode, @nospecialize env...;
+                                        isva::Bool = false,
+                                        slotnames::Union{Nothing,Vector{Symbol}}=nothing,
+                                        kwargs...)
+                # NOTE: we need ir.argtypes[1] == typeof(env)
+                ir = Core.Compiler.copy(ir)
+                # if the user didn't specify a definition MethodInstance or filename Symbol to use for the debuginfo, set a filename now
+                ir.debuginfo.def === nothing && (ir.debuginfo.def = :var"generated IR for OpaqueClosure")
+                nargtypes = length(ir.argtypes)
+                nargs = nargtypes-1
+                sig = compute_oc_signature(ir, nargs, isva)
+                rt = compute_ir_rettype(ir)
+                src = ccall(:jl_new_code_info_uninit, Ref{CodeInfo}, ())
+                if slotnames === nothing
+                    src.slotnames = fill(:none, nargtypes)
+                else
+                    length(slotnames) == nargtypes || error("mismatched `argtypes` and `slotnames`")
+                    src.slotnames = slotnames
+                end
+                src.slotflags = fill(zero(UInt8), nargtypes)
+                src.slottypes = copy(ir.argtypes)
+                src.min_world = ir.valid_worlds.min_world  # <-- NEW: copies world bounds
+                src.max_world = ir.valid_worlds.max_world  # <-- NEW: from IRCode
+                src.isva = isva
+                src.nargs = UInt(nargtypes)
+                src = ir_to_codeinf!(src, ir)
+                src.rettype = rt
+                return Base.Experimental.generate_opaque_closure(sig, Union{}, rt, src, nargs, isva, env...; kwargs...)
             end
-            src.slotflags = fill(zero(UInt8), nargtypes)
-            src.slottypes = copy(ir.argtypes)
-            src.min_world = ir.valid_worlds.min_world
-            src.max_world = ir.valid_worlds.max_world
-            src.isva = isva
-            src.nargs = UInt(nargtypes)
-            src = ir_to_codeinf!(src, ir)
-            src.rettype = rt
-            return Base.Experimental.generate_opaque_closure(sig, Union{}, rt, src, nargs, isva, env...; kwargs...)
         - source: "test"
           path: "test/opaque_closure.jl"
           loc: "301-313"
@@ -102,9 +109,9 @@ analysis:
                     end
                     return CallMeta(Union{}, Union{TypeError, ErrorException}, EFFECTS_THROWS, NoCallInfo())
                 end
-                ⊑ = partialorder(typeinf_lattice(interp))
+                # ... partialorder checks ...
                 if !(hasintersect(widenconst(M), Module) && hasintersect(widenconst(s), Symbol))
-                    return CallMeta(Union{}, TypeError, EFFECTS_THROWS, NoCallInfo())
+                    return CallMeta(Union{}, TypeError, EFFECTS_THROWS, NoCallInfo())  # <-- TypeError for invalid types
                 elseif M ⊑ Module && s ⊑ Symbol
                     return CallMeta(v, ErrorException, setglobal!_effects, NoCallInfo())
                 end
@@ -119,9 +126,9 @@ analysis:
                 if saw_latestworld
                     return Pair{Any,Any}(newty, Union{TypeError, ErrorException})
                 end
-                newty′ = RefValue{Any}(newty)
+                newty' = RefValue{Any}(newty)
                 (valid_worlds, ret) = scan_partitions(interp, g, sv.world) do interp::AbstractInterpreter, ::Core.Binding, partition::Core.BindingPartition
-                    global_assignment_binding_rt_exct(interp, partition, newty′[])
+                    global_assignment_binding_rt_exct(interp, partition, newty'[])
                 end
                 update_valid_age!(sv, valid_worlds)
                 return ret
@@ -138,10 +145,10 @@ analysis:
                 ty = kind == PARTITION_KIND_DECLARED ? Any : partition_restriction(partition)
                 wnewty = widenconst(newty)
                 if !hasintersect(wnewty, ty)
-                    return Pair{Any,Any}(Bottom, TypeError)
+                    return Pair{Any,Any}(Bottom, TypeError)  # <-- TypeError when types don't intersect
                 elseif !(wnewty <: ty)
                     retty = tmeet(typeinf_lattice(interp), newty, ty)
-                    return Pair{Any,Any}(retty, TypeError)
+                    return Pair{Any,Any}(retty, TypeError)   # <-- TypeError when not subtype
                 end
                 return Pair{Any,Any}(newty, Bottom)
             end
@@ -154,7 +161,22 @@ analysis:
             @test Base.infer_exception_type((Float64,)) do x
                 setglobal!(@__MODULE__, :invalid_setglobal!_exct_modeling, x)
             end == TypeError
-    - summary: "Strengthen effects/nothrow modeling for SimpleVector length and pointer arithmetic intrinsics, tightening TypeError conditions for add_ptr/sub_ptr." 
+    - summary: "Extend TypeError.context field to accept GlobalRef, enabling better error messages for global binding type violations."
+      component: "Base.TypeError"
+      evidence:
+        - source: "code"
+          path: "base/boot.jl"
+          loc: "410-415"
+          url: "https://github.com/JuliaLang/julia/blob/ecee0f78474553f725b3856f1427d90c4afa2712/base/boot.jl#L410-L415"
+          snippet: |
+            struct TypeError <: Exception
+                # `context` optionally adds extra detail, e.g. the name of the type parameter
+                # that got a bad value.
+                func::Symbol
+                context::Union{AbstractString,GlobalRef,Symbol}  # <-- GlobalRef added
+                expected::Type
+                got
+    - summary: "Add _svec_len_nothrow function and use it for Core._svec_len nothrow inference; add TypeError modeling for add_ptr/sub_ptr intrinsics with non-Ptr/UInt arguments."
       component: "Compiler.Tfuncs"
       evidence:
         - source: "code"
@@ -169,9 +191,9 @@ analysis:
                 return Int
             end
             add_tfunc(Core._svec_len, 1, 1, _svec_len_tfunc, 1)
-            @nospecs function _svec_len_nothrow(𝕃::AbstractLattice, s)
-                ⊑ = partialorder(𝕃)
-                return s ⊑ SimpleVector
+            @nospecs function _svec_len_nothrow(L::AbstractLattice, s)
+                ⊑ = partialorder(L)
+                return s ⊑ SimpleVector  # <-- NEW: nothrow when arg is SimpleVector
             end
         - source: "code"
           path: "Compiler/src/tfuncs.jl"
@@ -180,10 +202,10 @@ analysis:
           snippet: |
             elseif f === Core._svec_len
                 na == 1 || return false
-                return _svec_len_nothrow(𝕃, argtypes[1])
+                return _svec_len_nothrow(L, argtypes[1])  # <-- Changed from _svec_len_tfunc isa Const
             elseif f === Core._svec_ref
                 na == 2 || return false
-                return _svec_ref_tfunc(𝕃, argtypes[1], argtypes[2]) isa Const
+                return _svec_ref_tfunc(L, argtypes[1], argtypes[2]) isa Const
         - source: "code"
           path: "Compiler/src/tfuncs.jl"
           loc: "2981-2986"
@@ -191,48 +213,33 @@ analysis:
           snippet: |
             if f === Intrinsics.add_ptr || f === Intrinsics.sub_ptr
                 if !(argtypes[1] ⊑ Ptr && argtypes[2] ⊑ UInt)
-                    return TypeError
+                    return TypeError  # <-- NEW: TypeError for wrong argument types
                 end
                 return Union{}
             end
+        - source: "code"
+          path: "base/essentials.jl"
+          loc: "936-937"
+          url: "https://github.com/JuliaLang/julia/blob/ecee0f78474553f725b3856f1427d90c4afa2712/base/essentials.jl#L936-L937"
+          snippet: |
+            function length(v::SimpleVector)
+                Core._svec_len(v)  # length(::SimpleVector) dispatches to Core._svec_len
+            end
         - source: "test"
           path: "Compiler/test/effects.jl"
-          loc: "1437-1480"
-          url: "https://github.com/JuliaLang/julia/blob/ecee0f78474553f725b3856f1427d90c4afa2712/Compiler/test/effects.jl#L1437-L1480"
+          loc: "1441-1445"
+          url: "https://github.com/JuliaLang/julia/blob/ecee0f78474553f725b3856f1427d90c4afa2712/Compiler/test/effects.jl#L1441-L1445"
           snippet: |
-            let effects = Base.infer_effects(Core.Intrinsics.pointerset, Tuple{Vararg{Any}})
-                @test Compiler.is_consistent(effects)
-                @test !Compiler.is_effect_free(effects)
-            end
             @test Compiler.intrinsic_nothrow(Core.Intrinsics.add_ptr, Any[Ptr{Int}, UInt])
             @test Compiler.intrinsic_nothrow(Core.Intrinsics.sub_ptr, Any[Ptr{Int}, UInt])
             @test !Compiler.intrinsic_nothrow(Core.Intrinsics.add_ptr, Any[UInt, UInt])
             @test !Compiler.intrinsic_nothrow(Core.Intrinsics.sub_ptr, Any[UInt, UInt])
             @test Compiler.is_nothrow(Base.infer_effects(+, Tuple{Ptr{UInt8}, UInt}))
-            # effects modeling for atomic intrinsics
-            # these functions especially need to be marked !effect_free since they imply synchronization
-            for atomicfunc = Any[
-                    Core.Intrinsics.atomic_pointerref,
-                    Core.Intrinsics.atomic_pointerset,
-                    Core.Intrinsics.atomic_pointerswap,
-                    Core.Intrinsics.atomic_pointerreplace,
-                    Core.Intrinsics.atomic_fence]
-                @test !Compiler.is_effect_free(Base.infer_effects(atomicfunc, Tuple{Vararg{Any}}))
-            end
-
-            # effects modeling for intrinsics that can do arbitrary things
-            let effects = Base.infer_effects(Core.Intrinsics.llvmcall, Tuple{Vararg{Any}})
-                @test effects == Compiler.Effects()
-            end
-            let effects = Base.infer_effects(Core.Intrinsics.atomic_pointermodify, Tuple{Vararg{Any}})
-                @test effects == Compiler.Effects()
-            end
-
-            # JuliaLang/julia#57780
-            let effects = Base.infer_effects(Base._unsetindex!, (MemoryRef{String},))
-                @test !Compiler.is_effect_free(effects)
-            end
-
+        - source: "test"
+          path: "Compiler/test/effects.jl"
+          loc: "1470-1480"
+          url: "https://github.com/JuliaLang/julia/blob/ecee0f78474553f725b3856f1427d90c4afa2712/Compiler/test/effects.jl#L1470-L1480"
+          snippet: |
             # Core._svec_ref effects modeling (required for external abstract interpreter that doesn't run optimization)
             let effects = Base.infer_effects((Core.SimpleVector,Int); optimize=false) do svec, i
                     Core._svec_ref(svec, i)
@@ -247,34 +254,59 @@ analysis:
   secondary_effects:
     - effect: "OpaqueClosure code generation honors world-age bounds from IRCode, reducing chances of stale method visibility when creating closures directly from IRCode."
       mechanism: |
-        Core.OpaqueClosure(ir::IRCode, ...) sets CodeInfo min/max world from IRCode valid_worlds.
-          -> generate_opaque_closure uses that CodeInfo for method instance/world checks.
-          -> tests now exercise direct IRCode->OpaqueClosure paths without a CodeInfo round-trip.
+        Core.OpaqueClosure(ir::IRCode, ...) [opaque_closure.jl:30-57]
+          -> sets src.min_world = ir.valid_worlds.min_world [opaque_closure.jl:51]
+          -> sets src.max_world = ir.valid_worlds.max_world [opaque_closure.jl:52]
+          -> Base.Experimental.generate_opaque_closure uses CodeInfo with valid world bounds
+          -> OpaqueClosure method instance respects world-age constraints
       downstream_surfaces:
         - "OpaqueClosure constructors"
         - "CodeInfo world bounds"
+        - "World-age dependent method dispatch"
       likelihood: "high"
       impact: "medium"
     - effect: "Inference now predicts TypeError for invalid setglobal! assignments and avoids optimistic backdated-const inference in earlier worlds, aligning error modeling with runtime behavior."
       mechanism: |
-        abstract_eval_setglobal! calls global_assignment_rt_exct [abstractinterpretation.jl:2483-2489]
-          -> global_assignment_rt_exct dispatches to global_assignment_binding_rt_exct [abstractinterpretation.jl:3733-3740]
-          -> global_assignment_binding_rt_exct returns TypeError when new type conflicts with binding restriction [abstractinterpretation.jl:3753-3759]
-          -> inference test now asserts infer_exception_type == TypeError.
+        abstract_eval_setglobal!(interp, sv, saw_latestworld, M, s, v) [abstractinterpretation.jl:2483]
+          -> calls global_assignment_rt_exct(interp, sv, saw_latestworld, gr, v) [abstractinterpretation.jl:2488]
+          -> global_assignment_rt_exct calls scan_partitions with global_assignment_binding_rt_exct [abstractinterpretation.jl:3738]
+          -> global_assignment_binding_rt_exct checks binding kind and type restrictions [abstractinterpretation.jl:3745]
+            - For PARTITION_KIND_BACKDATED_CONST: returns newty (not Bottom) to avoid optimistic inference [line 3751]
+            - For type mismatch (!hasintersect): returns (Bottom, TypeError) [line 3756]
+            - For partial subtype (!(wnewty <: ty)): returns (tmeet(...), TypeError) [line 3759]
       downstream_surfaces:
-        - "Core.Compiler CallMeta exception modeling"
+        - "Core.Compiler CallMeta.exct exception modeling"
         - "JET error reporting on global assignments"
+        - "Optimization decisions based on exception inference"
       likelihood: "high"
       impact: "low"
-    - effect: "Effect inference treats add_ptr/sub_ptr as nothrow only for Ptr+UInt inputs and SimpleVector length as nothrow for SimpleVector, influencing optimizer and external interpreters that rely on effect flags."
+    - effect: "Effect inference treats length(::SimpleVector) as nothrow, enabling more aggressive optimization for code using SimpleVector lengths."
       mechanism: |
-        _svec_len_nothrow returns true when arg type ⊑ SimpleVector [tfuncs.jl:596-599]
-          -> _builtin_nothrow uses _svec_len_nothrow for Core._svec_len [tfuncs.jl:2368-2371]
-        intrinsic_exct now returns TypeError if add_ptr/sub_ptr are given non-Ptr/UInt [tfuncs.jl:2981-2985]
-          -> tests assert intrinsic_nothrow and infer_effects outcomes.
+        length(v::SimpleVector) [base/essentials.jl:936-937]
+          -> calls Core._svec_len(v)
+        _builtin_nothrow(L, Core._svec_len, argtypes, rt) [tfuncs.jl:2368-2370]
+          -> calls _svec_len_nothrow(L, argtypes[1])
+        _svec_len_nothrow(L, s) [tfuncs.jl:596-599]
+          -> returns s ⊑ SimpleVector (true when arg is known SimpleVector)
+        Result: Base.infer_effects(length, (Core.SimpleVector,)) now shows is_nothrow=true
       downstream_surfaces:
         - "Effects modeling (Base.infer_effects)"
         - "External abstract interpreters (e.g. JET, GPUCompiler)"
+        - "Dead code elimination based on nothrow inference"
+      likelihood: "high"
+      impact: "low"
+    - effect: "add_ptr/sub_ptr intrinsics now infer TypeError for non-Ptr/UInt arguments, enabling more precise exception inference for pointer arithmetic."
+      mechanism: |
+        intrinsic_exct(L, f, argtypes) [tfuncs.jl:2981-2986]
+          -> for f === Intrinsics.add_ptr || f === Intrinsics.sub_ptr
+          -> checks if !(argtypes[1] ⊑ Ptr && argtypes[2] ⊑ UInt)
+          -> returns TypeError instead of generic error
+        intrinsic_nothrow(f, argtypes) [tfuncs.jl:3006-3007]
+          -> returns intrinsic_exct(...) === Union{}
+          -> now correctly returns false for non-Ptr/UInt args
+      downstream_surfaces:
+        - "Pointer arithmetic exception inference"
+        - "Effects modeling for + on Ptr types"
       likelihood: "medium"
       impact: "low"
   compatibility:
@@ -286,25 +318,38 @@ analysis:
             usage: "IRTools inspects CodeInfo metadata when building custom IR passes."
           - tool: "JET"
             usage: "JET relies on CodeInfo/MethodInstance metadata for inference diagnostics."
+          - tool: "Enzyme"
+            usage: "Enzyme.jl may construct OpaqueClosures from custom IRCode for AD."
       - field: "Core.Compiler CallMeta.exct"
         change: "setglobal! inference can return TypeError (instead of always ErrorException) for invalid binding assignments."
         affected_tools:
           - tool: "JET"
-            usage: "JET reports inferred exception types from CallMeta." 
+            usage: "JET reports inferred exception types from CallMeta in src/abstractinterpret/inferenceerrorreport.jl."
+      - field: "TypeError.context"
+        change: "TypeError.context field now accepts GlobalRef in addition to AbstractString and Symbol."
+        affected_tools:
+          - tool: "Any package handling TypeErrors"
+            usage: "Code that pattern-matches on TypeError.context type may need to handle GlobalRef case."
     behavioral:
       - change: "Invalid setglobal! assignments are inferred as TypeError, matching runtime error classification more closely."
         risk: "low"
       - change: "OpaqueClosure constructed from IRCode inherits world bounds, which can affect method visibility across world ages."
         risk: "medium"
+      - change: "length(::SimpleVector) now inferred as nothrow, may enable additional optimizations."
+        risk: "low"
   performance:
     compile_time:
-      - impact: "ESTIMATED: negligible; adds simple lattice checks and world-bound assignments with no new passes."
+      - impact: "ESTIMATED: negligible; adds simple lattice checks (_svec_len_nothrow: O(1) subtype check) and world-bound assignments with no new passes."
     runtime:
-      - impact: "ESTIMATED: none for normal code; possible reduction in invalidation-related issues for OpaqueClosure from IRCode."
+      - impact: "ESTIMATED: none for normal code; possible reduction in invalidation-related issues for OpaqueClosure from IRCode. Nothrow inference for SimpleVector length may enable slightly better code generation."
   risk:
     level: "low"
     rationale:
       - "Changes are localized to inference/effects modeling and metadata propagation with tests covering expected behavior."
+      - "OpaqueClosure world-age fix addresses a correctness issue; changes behavior only for edge case of direct IRCode->OpaqueClosure construction."
+      - "TypeError modeling aligns inference with actual runtime behavior, reducing false positive/negative errors."
   open_questions: []
   recommendations:
     - "Downstream tools that inspect CallMeta.exct or CodeInfo world bounds should verify expectations on 1.12.1 backport builds."
+    - "Packages that pattern-match on TypeError.context type should add handling for GlobalRef case."
+    - "External abstract interpreters should verify their effects inference for SimpleVector operations matches the new behavior."
