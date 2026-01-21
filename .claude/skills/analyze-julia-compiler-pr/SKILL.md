@@ -452,25 +452,3 @@ snippet: |
   end
 ```
 
-## Step 5: Self-Review with Subagent (REQUIRED)
-
-After writing the initial analysis, **you MUST spawn the `review-pr-analysis` subagent** to verify and improve your work.
-
-The subagent runs in a **fresh context** - it hasn't seen your analysis process, only the final YAML file. This "fresh eyes" review catches issues you might have become blind to while deep in the analysis.
-
-Use the Task tool to spawn the subagent:
-
-```
-Task tool with:
-  subagent_type: review-pr-analysis
-  prompt: "Review and improve the analysis at analyses/pr_{number}.yaml. You have fresh eyes - verify all claims against actual code."
-```
-
-The subagent will independently:
-1. Read the analysis file without your context/assumptions
-2. Verify code snippets are actual code (not descriptions)
-3. Check that call chains have file:line references
-4. Search for callers of modified functions
-5. Fix any gaps or YAML issues
-
-**Do not consider the analysis complete until the review subagent has run.**
