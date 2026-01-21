@@ -40,7 +40,7 @@ analysis:
                 next_label_id::Ref{Int}
                 is_toplevel_thunk::Bool
                 lambda_bindings::LambdaBindings
-                argmap::Dict{IdTag, IdTag}
+                argmap::Dict{IdTag, IdTag}  # NEW: maps reassigned argument IDs to local slot IDs
                 return_type::Union{Nothing, SyntaxTree{Attrs}}
                 break_targets::Dict{String, JumpTarget{Attrs}}
                 handler_token_stack::SyntaxList{Attrs, Vector{NodeId}}
@@ -64,8 +64,8 @@ analysis:
             end
         - source: "code"
           path: "JuliaLowering/src/linear_ir.jl"
-          loc: "575-650"
-          url: "https://github.com/JuliaLang/julia/blob/94771dd2ca098ca3e0a74495829cd160203d1e2e/JuliaLowering/src/linear_ir.jl#L575-L650"
+          loc: "575-651"
+          url: "https://github.com/JuliaLang/julia/blob/94771dd2ca098ca3e0a74495829cd160203d1e2e/JuliaLowering/src/linear_ir.jl#L575-L651"
           snippet: |
             function compile(ctx::LinearIRContext, ex, needs_value, in_tail_pos)
                 k = kind(ex)
@@ -75,7 +75,7 @@ analysis:
                     ex1 = ex
                     if kind(ex1) == K"BindingId"
                         binfo = get_binding(ctx, ex1)
-                        if haskey(ctx.argmap, binfo.id)
+                        if haskey(ctx.argmap, binfo.id)  # <-- NEW: remap argument reads
                             ex1 = setattr!(newleaf(ctx, ex1, K"BindingId"), :var_id, ctx.argmap[binfo.id])
                         end
                     end
@@ -128,7 +128,7 @@ analysis:
                         rhs = compile(ctx, ex[2], true, false)
                         if kind(lhs) == K"BindingId"
                             binfo = get_binding(ctx, lhs)
-                            if haskey(ctx.argmap, binfo.id)
+                            if haskey(ctx.argmap, binfo.id)  # <-- NEW: remap argument assignments
                                 lhs = setattr!(newleaf(ctx, lhs, K"BindingId"), :var_id, ctx.argmap[binfo.id])
                             end
                         end
@@ -183,6 +183,21 @@ analysis:
             795:            compile_lambda(ctx, ex[5])
             798:        lam = compile_lambda(ctx, ex)
             1166:    res = compile_lambda(_ctx, reparent(_ctx, ex))
+        - source: "code"
+          path: "JuliaLowering/src/linear_ir.jl"
+          loc: "1157-1165"
+          url: "https://github.com/JuliaLang/julia/blob/94771dd2ca098ca3e0a74495829cd160203d1e2e/JuliaLowering/src/linear_ir.jl#L1157-L1165"
+          snippet: |
+            # Second LinearIRContext construction site in linearize_ir
+            _ctx = LinearIRContext(graph, SyntaxList(graph), ctx.bindings,
+                                   Ref(0), false, LambdaBindings(),
+                                   Dict{IdTag,IdTag}(), nothing,  # <-- NEW: argmap initialized as empty
+                                   Dict{String,JumpTarget{Attrs}}(),
+                                   SyntaxList(graph), SyntaxList(graph),
+                                   Vector{FinallyHandler{Attrs}}(),
+                                   Dict{String, JumpTarget{Attrs}}(),
+                                   Vector{JumpOrigin{Attrs}}(),
+                                   Dict{Symbol, Any}(), ctx.mod)
     - summary: "New regression tests assert that macros with assigned-to arguments lower correctly, and IR snapshots now include the extra local slots created by arg remapping."
       component: "JuliaLowering/test"
       evidence:
@@ -290,9 +305,9 @@ analysis:
         compile_lambda(outer_ctx, ex)  [linear_ir.jl:1069-1090]
           builds ctx.argmap for any argument with binfo.is_assigned
           and inserts a prologue assignment: (= local_slot binding)
-        -> compile(ctx, ex, ...)  [linear_ir.jl:575-650]
+        -> compile(ctx, ex, ...)  [linear_ir.jl:575-651]
           rewrites BindingId uses and LHS assignments via ctx.argmap before emit
-        -> compile_lambda callers (method/lambda/opaque_closure_method)  [linear_ir.jl:779-798]
+        -> compile_lambda callers (method/lambda/opaque_closure_method)  [linear_ir.jl:779-798, 1166]
           ensure all lowering paths use the remapped slots
       downstream_surfaces:
         - "Macro expansion in expr_compat_mode (JuliaLowering.include_string)"
