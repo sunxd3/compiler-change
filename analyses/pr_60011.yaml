@@ -35,6 +35,29 @@ analysis:
             @nospecs function pointerarith_tfunc(𝕃::AbstractLattice, ptr, offset)
                 return widenconst(ptr)
             end
+        - source: "code"
+          path: "Compiler/src/tfuncs.jl"
+          loc: "756-757"
+          url: "https://github.com/JuliaLang/julia/blob/97f880ae6d9c727a1ea8bb650b7578572f3e8972/Compiler/src/tfuncs.jl#L756-L757"
+          snippet: |
+            add_tfunc(add_ptr, 2, 2, pointerarith_tfunc, 1)
+            add_tfunc(sub_ptr, 2, 2, pointerarith_tfunc, 1)
+        - source: "code"
+          path: "Compiler/src/typelattice.jl"
+          loc: "697-707"
+          url: "https://github.com/JuliaLang/julia/blob/97f880ae6d9c727a1ea8bb650b7578572f3e8972/Compiler/src/typelattice.jl#L697-L707"
+          snippet: |
+            """
+                widenconst(x) -> t::Type
+
+            Widens extended lattice element `x` to native `Type` representation.
+            """
+            widenconst(::AnyConditional) = Bool
+            widenconst(a::AnyMustAlias) = widenconst(widenmustalias(a))
+            widenconst(c::Const) = (v = c.val; isa(v, Type) ? Type{v} : typeof(v))
+            widenconst(::PartialTypeVar) = TypeVar
+            widenconst(t::Core.PartialStruct) = t.typ
+            widenconst(t::PartialOpaque) = t.typ
     - summary: "Add regression test for pointer arithmetic from null pointer with offset (issue #60009)."
       component: "Compiler/test/effects.jl"
       evidence:
@@ -49,19 +72,45 @@ analysis:
             end
             @test null_offset(Int(100)) == Ptr{UInt8}(UInt(100))
   secondary_effects:
-    - effect: "Pointer arithmetic on Const Ptr no longer yields a Const result type, reducing incorrect constant propagation for pointer addition/subtraction."
+    - effect: "Pointer arithmetic on Const Ptr no longer yields a Const result type, fixing incorrect constant propagation for pointer addition/subtraction."
       mechanism: |
-        add_tfunc(add_ptr, 2, 2, pointerarith_tfunc, 1)  [Compiler/src/tfuncs.jl:756]
-        add_tfunc(sub_ptr, 2, 2, pointerarith_tfunc, 1)  [Compiler/src/tfuncs.jl:757]
-        -> find_tfunc(f) + T_FFUNC_VAL lookup  [Compiler/src/tfuncs.jl:60-88]
-        -> tf = T_FFUNC_VAL[fidx]  [Compiler/src/tfuncs.jl:2840-2846]
-        -> tf[3](𝕃ᵢ, argtypes...) dispatches pointerarith_tfunc  [Compiler/src/tfuncs.jl:2869-2870]
-        -> pointerarith_tfunc returns widenconst(ptr) (no Const preservation)  [Compiler/src/tfuncs.jl:710-712]
+        Bug: Previously `return ptr` preserved Const wrappers. For example:
+          - Input: Const(Ptr{UInt8}(0)) + offset -> returned Const(Ptr{UInt8}(0))
+          - This is wrong because pointer arithmetic produces a runtime-dependent value
+
+        Fix: `widenconst(ptr)` strips the Const wrapper:
+          widenconst(c::Const) = (v = c.val; isa(v, Type) ? Type{v} : typeof(v))  [typelattice.jl:703]
+          - Input: Const(Ptr{UInt8}(0)) -> returns Ptr{UInt8} (the type, not constant value)
+
+        Call chain for IntrinsicFunction (NOT Builtin, so uses T_IFUNC, not T_FFUNC_VAL):
+          add_tfunc(add_ptr, 2, 2, pointerarith_tfunc, 1)  [tfuncs.jl:756]
+          add_tfunc(sub_ptr, 2, 2, pointerarith_tfunc, 1)  [tfuncs.jl:757]
+          -> isa(f, IntrinsicFunction) branch  [tfuncs.jl:2820]
+          -> iidx = Int(reinterpret(Int32, f)) + 1  [tfuncs.jl:2821]
+          -> tf = T_IFUNC[iidx]  [tfuncs.jl:2826]
+          -> tf[3](𝕃ᵢ, argtypes...) dispatches to pointerarith_tfunc  [tfuncs.jl:2869]
+          -> pointerarith_tfunc returns widenconst(ptr)  [tfuncs.jl:710-712]
       downstream_surfaces:
-        - "Core.Compiler abstract interpreter (builtin pointer arithmetic inference)"
-        - "Const-propagation users (JET/IRTools) that read inferred arg/result types"
+        - "Core.Compiler abstract interpreter (intrinsic pointer arithmetic inference)"
+        - "Const-propagation analysis that relies on inferred result types"
       likelihood: "high"
       impact: "low"
+    - effect: "User-facing pointer + and - operators benefit from this fix via their connection to add_ptr/sub_ptr intrinsics."
+      mechanism: |
+        User-level pointer arithmetic uses add_ptr/sub_ptr intrinsics:
+          +(x::Ptr, y::Integer) = add_ptr(x, (y % UInt) % UInt)  [base/pointer.jl:314]
+          -(x::Ptr, y::Integer) = sub_ptr(x, (y % UInt) % UInt)  [base/pointer.jl:315]
+
+        When Julia infers types for code like `Ptr{UInt8}(C_NULL) + offset`:
+          1. C_NULL is known constant -> Ptr{UInt8}(C_NULL) infers as Const(Ptr{UInt8}(0))
+          2. Before fix: add_ptr tfunc returned Const(Ptr{UInt8}(0)) regardless of offset
+          3. After fix: add_ptr tfunc returns Ptr{UInt8} (non-constant type)
+          4. Runtime correctly computes Ptr{UInt8}(0 + offset) = Ptr{UInt8}(offset)
+      downstream_surfaces:
+        - "All code using Ptr + Integer or Ptr - Integer arithmetic"
+        - "FFI code, unsafe memory operations, buffer manipulation"
+      likelihood: "high"
+      impact: "medium"
   compatibility:
     internal_api: []
     behavioral:

@@ -32,9 +32,26 @@ analysis:
     issue_links:
       - "https://github.com/JuliaLang/JuliaLowering.jl/issues/121"
   direct_changes:
-    - summary: "Convert macro-name nodes (macro_name / StrMacroName / CmdMacroName) into K\"Identifier\" with @-prefixed name_val during green->AST conversion, including dotted macro paths."
+    - summary: "Convert macro-name nodes (macro_name / StrMacroName / CmdMacroName) into K\"Identifier\" with @-prefixed name_val during green->AST conversion, including dotted macro paths. Uses lower_identifier_name from JuliaSyntax."
       component: "JuliaLowering/src/syntax_graph.jl"
       evidence:
+        - source: "code"
+          path: "JuliaSyntax/src/julia/literal_parsing.jl"
+          loc: "457-468"
+          url: "https://github.com/JuliaLang/julia/blob/f163ed8c/base/JuliaSyntax/src/julia/literal_parsing.jl#L457-L468"
+          snippet: |
+            function lower_identifier_name(name::AbstractString, k::Kind)
+                # Replicate eager lowering done by the flisp parser
+                if k == K"macro_name"
+                    name == "." ? "@__dot__" : "@$name"
+                elseif k == K"StrMacroName"
+                    "@$(name)_str"
+                elseif k == K"CmdMacroName"
+                    "@$(name)_cmd"
+                else
+                    name
+                end
+            end
         - source: "code"
           path: "JuliaLowering/src/syntax_graph.jl"
           loc: "889-906"
@@ -58,17 +75,17 @@ analysis:
                 else
                     mac_id
                 end
-    - summary: "Macro expansion now operates on the reconstructed identifier directly (no fixup pass) and builds cmdstring macrocalls with @cmd identifiers."
+    - summary: "Macro expansion now operates on the reconstructed identifier directly by removing the fixup_macro_name function entirely. The eval_macro_name function now receives @-prefixed identifiers from _green_to_ast, and cmdstring macrocalls use @cmd identifiers."
       component: "JuliaLowering/src/macro_expansion.jl"
       evidence:
         - source: "code"
           path: "JuliaLowering/src/macro_expansion.jl"
-          loc: "155-183"
-          url: "https://github.com/JuliaLang/julia/blob/f163ed8c/JuliaLowering/src/macro_expansion.jl#L155-L183"
+          loc: "164-196"
+          url: "https://github.com/JuliaLang/julia/blob/f163ed8c/JuliaLowering/src/macro_expansion.jl#L164-L196"
           snippet: |
             function eval_macro_name(ctx::MacroExpansionContext, mctx::MacroContext, ex0::SyntaxTree)
                 mod = current_layer(ctx).mod
-                ex = expand_forms_1(ctx, ex0)
+                ex = expand_forms_1(ctx, ex0)  # No more fixup_macro_name(ctx, ...) call
                 try
                     if kind(ex) === K"Value"
                         !(ex.value isa GlobalRef) ? ex.value :
@@ -96,6 +113,25 @@ analysis:
                     throw(MacroExpansionError(mctx, ex, "Macro not found", :all, err))
                 end
             end
+        - source: "diff"
+          path: "JuliaLowering/src/macro_expansion.jl"
+          loc: "138-165 (removed)"
+          url: "https://github.com/JuliaLang/julia/pull/60170/files#diff-macro_expansion"
+          snippet: |
+            # REMOVED: The fixup_macro_name function was entirely deleted:
+            # function fixup_macro_name(ctx::MacroExpansionContext, ex::SyntaxTree)
+            #     k = kind(ex)
+            #     if k == K"StrMacroName" || k == K"CmdMacroName"
+            #         layerid = get(ex, :scope_layer, current_layer_id(ctx))
+            #         newname = JuliaSyntax.lower_identifier_name(ex.name_val, k)
+            #         makeleaf(ctx, ex, ex, [:kind=>K"Identifier", :scope_layer=>layerid,
+            #                                :name_val=>newname])
+            #     elseif k == K"macro_name"
+            #         ...
+            #     end
+            # end
+            # This simplification was possible because _green_to_ast now handles
+            # macro name reconstruction during green->AST conversion.
         - source: "code"
           path: "JuliaLowering/src/macro_expansion.jl"
           loc: "488-491"
@@ -162,13 +198,13 @@ analysis:
         _green_to_ast() converts K"macro_name"/K"StrMacroName"/K"CmdMacroName" into K"Identifier" with @-prefixed name_val  [syntax_graph.jl:889-906]
         -> expand_forms_1() operates on the identifier directly during macro expansion  [macro_expansion.jl:155-183]
         -> _find_SyntaxTree_macro() now matches name.name_val == "@SyntaxTree" instead of "SyntaxTree"  [syntax_graph.jl:576-593]
-        -> format_ir_for_test() special-cases @ast_ by checking for Identifier "@ast_"  [test/utils.jl:167-175]
+        -> format_ir_for_test() special-cases @ast_ by checking for Identifier "@ast_"  [test/utils.jl:150-158]
       downstream_surfaces:
         - "JuliaLowering SyntaxTree utilities (macro search and test harnesses)"
         - "Tools pattern-matching SyntaxTree kinds for macro names"
       likelihood: "high"
       impact: "medium"
-    - effect: "Expr compatibility lowering emits macrocall nodes that contain escaped @-prefixed identifiers (instead of K\"macro_name\" nodes), changing legacy macrocall shape accepted by expr_to_syntaxtree." 
+    - effect: "Expr compatibility lowering emits macrocall nodes that contain escaped @-prefixed identifiers (instead of K\"macro_name\" nodes), changing legacy macrocall shape accepted by expr_to_syntaxtree."
       mechanism: |
         _insert_convert_expr() handles Expr(:macrocall, ...) by directly rewriting @__dot__ and leaving macro name as an identifier  [compat.jl:262-274]
         -> tests assert escaped macro names appear as K"Identifier" "@mac" in the SyntaxTree  [test/compat.jl:494-608]
@@ -177,6 +213,41 @@ analysis:
         - "Downstream AST transforms that expect K\"macro_name\" wrappers"
       likelihood: "high"
       impact: "medium"
+    - effect: "Error message highlighting for macro-not-found errors shifts slightly because the macro name node now includes the '@' prefix in its span."
+      mechanism: |
+        MacroExpansionError highlights the source range of the macro name expression.
+        Before: macro_name node spans just the identifier (e.g., "m_not_exist")
+        After: K"Identifier" "@m_not_exist" includes '@' in its span
+        -> error caret in macros_ir.jl test shifted: "#              └──────────┘" instead of "#               └─────────┘"
+      downstream_surfaces:
+        - "Error message display formatting"
+        - "Tools parsing error output for macro location"
+      likelihood: "high"
+      impact: "low"
+    - effect: "Fixes edge case where nested macros like @static inside @preserve failed (JuliaLowering.jl/issues/121) because macro name reconstruction happened too late."
+      mechanism: |
+        Before: fixup_macro_name was called during macro expansion, which could miss @-prefixing
+                when macros were nested in certain patterns (e.g., GC.@preserve @static ...)
+        After: _green_to_ast performs reconstruction before any expansion, ensuring consistent naming
+        -> Test added to verify: GC.@preserve @static if true @__MODULE__ else end
+      downstream_surfaces:
+        - "Nested macro patterns involving @static, @__dot__, @preserve"
+        - "VersionNumber macro patterns (v\"1.14\" inside @preserve)"
+      likelihood: "high"
+      impact: "high"
+      evidence:
+        - source: "test"
+          path: "JuliaLowering/test/macros.jl"
+          loc: "350-356"
+          url: "https://github.com/JuliaLang/julia/blob/f163ed8c/JuliaLowering/test/macros.jl#L350-L356"
+          snippet: |
+            # JuliaLowering.jl/issues/121
+            @test JuliaLowering.include_string(test_mod, """
+            GC.@preserve @static if true @__MODULE__ else end
+            """) isa Module
+            @test JuliaLowering.include_string(test_mod, """
+            GC.@preserve @static if true v"1.14" else end
+            """) isa VersionNumber
   compatibility:
     internal_api:
       - field: "SyntaxTree node kinds for macro names"
@@ -184,6 +255,8 @@ analysis:
         affected_tools:
           - tool: "JuliaLowering SyntaxTree utilities"
             usage: "_find_SyntaxTree_macro expects Identifier name_val == \"@SyntaxTree\" when matching macrocall nodes."
+          - tool: "JuliaLowering test harness"
+            usage: "format_ir_for_test checks kind(ex[1]) == K\"Identifier\" && ex[1].name_val == \"@ast_\" for macro handling."
         evidence:
           - source: "code"
             path: "JuliaLowering/src/syntax_graph.jl"
@@ -197,6 +270,20 @@ analysis:
                           end
                           @assert kind(name) == K"Identifier"
                           name.name_val == "@SyntaxTree"
+                      end
+          - source: "code"
+            path: "JuliaLowering/test/utils.jl"
+            loc: "150-158"
+            url: "https://github.com/JuliaLang/julia/blob/f163ed8c/JuliaLowering/test/utils.jl#L150-L158"
+            snippet: |
+              function format_ir_for_test(mod, case)
+                  ex = parsestmt(SyntaxTree, case.input)
+                  try
+                      if (kind(ex) == K"macrocall" && kind(ex[1]) == K"Identifier" &&
+                          ex[1].name_val == "@ast_")
+                          # Total hack, until @ast_ can be implemented in terms of new-style
+                          # macros.
+                          ex = Base.eval(mod, Expr(ex))
                       end
     behavioral:
       - change: "Expr-to-SyntaxTree compatibility now expects escaped macro names to appear as @-prefixed identifiers (e.g., \"@mac\") rather than K\"macro_name\" wrappers."
@@ -226,8 +313,33 @@ analysis:
                   "x"::K"Identifier"
               ]
   performance:
-    compile_time: []
+    compile_time:
+      - description: "Removes one AST traversal pass (fixup_macro_name) from macro expansion."
+        impact: "ESTIMATED: Negligible positive impact - one fewer tree walk per macro expansion."
     runtime: []
+  compatibility_improvements:
+    - description: "Stdlib precompilation compatibility improved from 38/52 to 40/52 non-sysimage stdlibs."
+      evidence:
+        - source: "test"
+          path: "test/JuliaLowering_stdlibs.jl"
+          loc: "1-17"
+          url: "https://github.com/JuliaLang/julia/blob/f163ed8c/test/JuliaLowering_stdlibs.jl#L1-L17"
+          snippet: |
+            # known precompilation failures under JL (reduced from 14 to 12 entries)
+            const INCOMPATIBLE_STDLIBS = String[
+                "InteractiveUtils"
+                "LazyArtifacts"
+                "LibGit2"
+                "Pkg"
+                "REPL"
+                "REPLExt"
+                "SparseArrays"
+                "SparseArraysExt"
+                "Statistics"
+                "SuiteSparse"
+                "TOML"
+                "Test"
+            ]
   risk:
     level: "medium"
     rationale:

@@ -14,6 +14,8 @@ scope:
   files_touched:
     - "JuliaLowering/src/compat.jl"
     - "JuliaLowering/src/desugaring.jl"
+    - "JuliaLowering/src/hooks.jl"
+    - "JuliaLowering/src/macro_expansion.jl"
     - "JuliaLowering/src/syntax_graph.jl"
     - "JuliaLowering/src/syntax_macros.jl"
     - "JuliaLowering/test/compat.jl"
@@ -134,14 +136,14 @@ analysis:
             end
     - summary: >-
         Lowering now treats K"kw" as the canonical keyword node (including
-        in named tuple expansion and call argument extraction) and normalizes
-        arrow argument lists to emit K"kw" defaults.
+        in named tuple expansion, call argument extraction, and array indexing)
+        and normalizes arrow argument lists to emit K"kw" defaults.
       component: "JuliaLowering.Desugaring"
       evidence:
         - source: "code"
           path: "JuliaLowering/src/desugaring.jl"
-          loc: "1615-1690"
-          url: "https://github.com/JuliaLang/julia/blob/296cca2365f3736af59def97564d3a244677282a/JuliaLowering/src/desugaring.jl#L1615-L1690"
+          loc: "1615-1691"
+          url: "https://github.com/JuliaLang/julia/blob/296cca2365f3736af59def97564d3a244677282a/JuliaLowering/src/desugaring.jl#L1615-L1691"
           snippet: |
             function expand_named_tuple(ctx, ex, kws, eq_is_kw;
                                         field_name="named tuple field",
@@ -158,6 +160,7 @@ analysis:
                         name = to_symbol(ctx, kw)
                         value = kw
                     elseif k == K"kw" || (eq_is_kw && k == K"=")
+                        # syntax TODO: This should parse to K"kw"
                         if kind(kw[1]) != K"Identifier" && kind(kw[1]) != K"Placeholder"
                             throw(LoweringError(kw[1], "invalid $field_name name"))
                         end
@@ -212,6 +215,38 @@ analysis:
                 end
                 @assert !isnothing(current_nt)
                 current_nt
+            end
+        - source: "code"
+          path: "JuliaLowering/src/desugaring.jl"
+          loc: "534-549"
+          url: "https://github.com/JuliaLang/julia/blob/296cca2365f3736af59def97564d3a244677282a/JuliaLowering/src/desugaring.jl#L534-L549"
+          snippet: |
+            function _arg_to_temp(ctx, stmts, ex)
+                k = kind(ex)
+                if is_effect_free(ex)
+                    ex
+                elseif k == K"..."
+                    @ast ctx ex [k _arg_to_temp(ctx, stmts, ex[1])]
+                elseif k == K"kw"
+                    @ast ctx ex [K"kw" ex[1] _arg_to_temp(ctx, stmts, ex[2])]
+                elseif k == K"parameters"
+                    mapchildren(ctx, ex) do e
+                        _arg_to_temp(ctx, stmts, e)
+                    end
+                else
+                    emit_assign_tmp(stmts, ctx, ex)
+                end
+            end
+        - source: "code"
+          path: "JuliaLowering/src/desugaring.jl"
+          loc: "88-93"
+          url: "https://github.com/JuliaLang/julia/blob/296cca2365f3736af59def97564d3a244677282a/JuliaLowering/src/desugaring.jl#L88-L93"
+          snippet: |
+            function check_no_assignment(exs, msg="misplaced assignment statement in `[ ... ]`")
+                i = findfirst(kind(e) == K"=" || kind(e) == K"kw" for e in exs)
+                if !isnothing(i)
+                    throw(LoweringError(exs[i], msg))
+                end
             end
         - source: "code"
           path: "JuliaLowering/src/desugaring.jl"
@@ -276,6 +311,54 @@ analysis:
                     kind(a) === K"=" ? @ast(ctx, a, [K"kw" children(a)...]) : a
                 end
             end
+    - summary: >-
+        The @nospecialize syntax macro now handles K"kw" nodes in addition to K"=",
+        converting K"=" to K"kw" internally during argument processing.
+      component: "JuliaLowering.SyntaxMacros"
+      evidence:
+        - source: "code"
+          path: "JuliaLowering/src/syntax_macros.jl"
+          loc: "18-34"
+          url: "https://github.com/JuliaLang/julia/blob/296cca2365f3736af59def97564d3a244677282a/JuliaLowering/src/syntax_macros.jl#L18-L34"
+          snippet: |
+            function _apply_nospecialize(ctx, ex)
+                k = kind(ex)
+                if k == K"Identifier" || k == K"Placeholder" || k == K"tuple"
+                    setmeta(ex; nospecialize=true)
+                elseif k == K"..." || k == K"::" || k == K"=" || k == K"kw"
+                    # The @nospecialize macro is responsible for converting K"=" to K"kw".
+                    # Desugaring uses this helper internally, so we may see K"kw" too.
+                    if k == K"::" && numchildren(ex) == 1
+                        ex = @ast ctx ex [K"::" "_"::K"Placeholder" ex[1]]
+                    elseif k == K"=" && numchildren(ex) === 2
+                        ex = @ast ctx ex [K"kw" ex[1] ex[2]]
+                    end
+                    mapchildren(c->_apply_nospecialize(ctx, c), ctx, ex, 1:1)
+                else
+                    throw(LoweringError(ex, "Invalid function argument"))
+                end
+            end
+    - summary: >-
+        Expr-to-SyntaxTree conversion in compat.jl now converts K"=" to K"kw" for
+        arrow function argument lists when parsing from Expr ASTs.
+      component: "JuliaLowering.Compat"
+      evidence:
+        - source: "code"
+          path: "JuliaLowering/src/compat.jl"
+          loc: "360-370"
+          url: "https://github.com/JuliaLang/julia/blob/296cca2365f3736af59def97564d3a244677282a/JuliaLowering/src/compat.jl#L360-L370"
+          snippet: |
+            if a1 isa Expr && a1.head === :block
+                # Expr parsing fails to make :parameters here...
+                lam_args = Any[]
+                lam_eqs = Any[]
+                for a in a1.args
+                    a isa LineNumberNode && continue
+                    a isa Expr && a.head === :(=) ?
+                        push!(lam_eqs, Expr(:kw, a.args...)) : push!(lam_args, a)
+                end
+                !isempty(lam_eqs) && push!(lam_args, Expr(:parameters, lam_eqs...))
+                child_exprs[1] = a1_esc(Expr(:tuple, lam_args...))
     - summary: >-
         Expr conversion now distinguishes SyntaxTree-specific fixups by passing
         the tree type through fixup_Expr_child, allowing SyntaxTree to preserve
@@ -448,6 +531,34 @@ analysis:
         - "SyntaxTree <-> Expr round-tripping"
       likelihood: "medium"
       impact: "low"
+    - effect: >-
+        Array indexing expansion (setindex!/getindex) now processes K"kw" nodes
+        directly in _arg_to_temp, which is called by remove_argument_side_effects
+        during lowering of ref expressions.
+      mechanism: |
+        expand_ref(ctx, ex)                          [desugaring.jl:591-632]
+          -> remove_argument_side_effects(ctx, stmts, ex)  [desugaring.jl:554-575]
+            -> _arg_to_temp(ctx, stmts, e)           [desugaring.jl:534-549]
+               checks k == K"kw" directly (was: k == K"=" && eq_is_kw)
+               reconstructs @ast ctx ex [K"kw" ex[1] _arg_to_temp(ctx, stmts, ex[2])]
+      downstream_surfaces:
+        - "Array indexing with keyword arguments (ref expressions)"
+        - "Side-effect extraction for complex expressions"
+      likelihood: "high"
+      impact: "low"
+    - effect: >-
+        The @nospecialize syntax macro now accepts both K"=" and K"kw" nodes,
+        converting K"=" to K"kw" internally to normalize argument representations.
+      mechanism: |
+        Base.var"@nospecialize"(__context__, ex)  [syntax_macros.jl:36-38]
+          -> _apply_nospecialize(ctx, ex)          [syntax_macros.jl:18-34]
+             k == K"..." || k == K"::" || k == K"=" || k == K"kw"
+             converts K"=" to K"kw": @ast ctx ex [K"kw" ex[1] ex[2]]
+      downstream_surfaces:
+        - "@nospecialize macro in function definitions"
+        - "Keyword argument handling in function signatures"
+      likelihood: "medium"
+      impact: "low"
   compatibility:
     internal_api:
       - field: "JuliaSyntax.Kind \"kw\""
@@ -455,14 +566,28 @@ analysis:
         affected_tools:
           - tool: "Macros consuming SyntaxTree"
             usage: "Assume K\"=\" for keywords; must accept K\"kw\" in keyword argument positions."
+          - tool: "JET.jl"
+            usage: "May inspect AST kinds for error reporting; K\"kw\" is a new kind to handle."
       - field: "SourceRef.last_byte"
         change: "SourceRef stores explicit byte range end instead of GreenNode; byte_range uses first/last bytes."
         affected_tools:
           - tool: "JuliaLowering provenance utilities"
             usage: "showprov/flattened_provenance now read byte ranges from SourceRef for highlighting."
+      - field: "_apply_nospecialize signature"
+        change: "Now accepts K\"kw\" nodes in addition to K\"=\"; converts K\"=\" to K\"kw\" internally."
+        affected_tools:
+          - tool: "Custom @nospecialize-like macros"
+            usage: "If extending _apply_nospecialize, must handle both K\"=\" and K\"kw\" argument kinds."
+      - field: "fixup_Expr_child signature"
+        change: "Now takes tree type as first parameter: fixup_Expr_child(::Type, head, arg, first)."
+        affected_tools:
+          - tool: "Custom SyntaxTree-like types"
+            usage: "Must implement specialized fixup_Expr_child(::Type{<:MyTreeType}, ...) for Expr conversion."
     behavioral:
       - change: "Keyword argument defaults in arrow syntax parse as K\"kw\" and no longer depend on SyntaxNode fixups."
         user_visible: "Potentially affects macro-generated anonymous functions that emit K\"=\" in arglists."
+      - change: "check_no_assignment now rejects both K\"=\" and K\"kw\" nodes in array literals."
+        user_visible: "Error messages for misplaced assignments cover keyword-style nodes."
   performance:
     compile_time:
       - impact: >-
