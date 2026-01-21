@@ -22,7 +22,7 @@ scope:
     - "ScopeResolution"
 analysis:
   intent:
-    summary: "Ensure JuliaLowering can lower @generated methods that include unnamed arguments by synthesizing stable, unique stub names and preserving source references for non-syntax return values."
+    summary: "Fix JuliaLowering for @generated methods with unnamed arguments by synthesizing unique stub names (#arg{i}#) and correcting bugs in non-SyntaxTree return value handling. Required to get Dates pre-compiling with JuliaLowering."
     issue_links: []
   direct_changes:
     - summary: 'Introduce a helper that assigns deterministic placeholder names ("#arg{i}#") to unnamed arguments (BindingId) so generated-function stubs avoid repeated "#unused#" names.'
@@ -30,8 +30,8 @@ analysis:
       evidence:
         - source: "code"
           path: "JuliaLowering/src/desugaring.jl"
-          loc: "2537-2576"
-          url: "https://github.com/JuliaLang/julia/blob/47c627152131e11562fef655d4d329c3fb001300/JuliaLowering/src/desugaring.jl#L2537-L2576"
+          loc: "2537-2545"
+          url: "https://github.com/JuliaLang/julia/blob/47c627152131e11562fef655d4d329c3fb001300/JuliaLowering/src/desugaring.jl#L2537-L2545"
           snippet: |
             function stub_argname(n::SyntaxTree, i)
                 if kind(n) == K"Identifier"
@@ -42,47 +42,54 @@ analysis:
                     return "#arg" * string(i) * "#"
                 else @assert false "Unexpected argument kind: $(kind(n))" end
             end
+        - source: "code"
+          path: "JuliaLowering/src/desugaring.jl"
+          loc: "2572-2576"
+          url: "https://github.com/JuliaLang/julia/blob/47c627152131e11562fef655d4d329c3fb001300/JuliaLowering/src/desugaring.jl#L2572-L2576"
+          snippet: |
             [K"call"
                 "svec"::K"core"
                 "#self#"::K"Symbol"
                 (stub_argname(n,i)::K"Symbol"(n) for (i,n) in enumerate(arg_names[2:end]))...
             ]
-    - summary: "Preserve the generated function stub source reference when the generator returns a non-SyntaxTree value, improving provenance for later macro expansion and lowering steps."
+    - summary: "Fix three bugs in non-SyntaxTree return value handling: use correct context (ctx1), correct source reference (g.srcref), and correct value variable (ex0). Original code used undefined variables 'ctx', 'ex', and 'expanded'."
       component: "JuliaLowering/src/runtime.jl"
       evidence:
         - source: "code"
           path: "JuliaLowering/src/runtime.jl"
-          loc: "332-343"
-          url: "https://github.com/JuliaLang/julia/blob/47c627152131e11562fef655d4d329c3fb001300/JuliaLowering/src/runtime.jl#L332-L343"
+          loc: "341-343"
+          url: "https://github.com/JuliaLang/julia/blob/47c627152131e11562fef655d4d329c3fb001300/JuliaLowering/src/runtime.jl#L341-L343"
           snippet: |
-            mctx = MacroContext(syntax_graph(ctx1), g.srcref, layer, false)
-            ex0 = g.gen(mctx, args...)
-            if ex0 isa SyntaxTree
-                if !is_compatible_graph(ctx1, ex0)
-                    ex0 = copy_ast(ctx1, ex0)
-                end
             else
                 ex0 = @ast ctx1 g.srcref ex0::K"Value"
             end
+        - source: "diff"
+          path: "JuliaLowering/src/runtime.jl"
+          loc: "342"
+          url: "https://github.com/JuliaLang/julia/pull/60226/files#diff-runtime"
+          snippet: |
+            # Before (buggy):
+            #   ex0 = @ast ctx ex expanded::K"Value"
+            # After (fixed):
+            #   ex0 = @ast ctx1 g.srcref ex0::K"Value"
+            # Fixes: ctx->ctx1, ex->g.srcref, expanded->ex0
     - summary: "Add a regression test ensuring generated functions with unnamed arguments execute correctly under JuliaLowering."
       component: "JuliaLowering/test/functions.jl"
       evidence:
         - source: "test"
           path: "JuliaLowering/test/functions.jl"
-          loc: "503-524"
-          url: "https://github.com/JuliaLang/julia/blob/47c627152131e11562fef655d4d329c3fb001300/JuliaLowering/test/functions.jl#L503-L524"
+          loc: "516-524"
+          url: "https://github.com/JuliaLang/julia/blob/47c627152131e11562fef655d4d329c3fb001300/JuliaLowering/test/functions.jl#L516-L524"
           snippet: |
-            @testset "Generated functions" begin
-                @test JuliaLowering.include_string(test_mod, """
-                begin
-                    @generated function f_gen_unnamed_args(::Type{T}, y, ::Type{U}) where {T, U}
-                        return (T, y, U)
-                    end
-            
-                    f_gen_unnamed_args(Int, UInt8(3), Float64)
+            @test JuliaLowering.include_string(test_mod, """
+            begin
+                @generated function f_gen_unnamed_args(::Type{T}, y, ::Type{U}) where {T, U}
+                    return (T, y, U)
                 end
-                """) == (Int, UInt8, Float64)
+
+                f_gen_unnamed_args(Int, UInt8(3), Float64)
             end
+            """) == (Int, UInt8, Float64)
   secondary_effects:
     - effect: 'Unnamed arguments in @generated methods no longer collide on "#unused#" and can be lowered without duplicate-argument errors.'
       mechanism: |
@@ -124,15 +131,15 @@ analysis:
         evidence:
           - source: "test"
             path: "JuliaLowering/test/functions.jl"
-            loc: "503-524"
-            url: "https://github.com/JuliaLang/julia/blob/47c627152131e11562fef655d4d329c3fb001300/JuliaLowering/test/functions.jl#L503-L524"
+            loc: "516-524"
+            url: "https://github.com/JuliaLang/julia/blob/47c627152131e11562fef655d4d329c3fb001300/JuliaLowering/test/functions.jl#L516-L524"
             snippet: |
               @test JuliaLowering.include_string(test_mod, """
               begin
                   @generated function f_gen_unnamed_args(::Type{T}, y, ::Type{U}) where {T, U}
                       return (T, y, U)
                   end
-              
+
                   f_gen_unnamed_args(Int, UInt8(3), Float64)
               end
               """) == (Int, UInt8, Float64)
@@ -142,8 +149,10 @@ analysis:
   risk:
     level: "low"
     rationale:
-      - "Change is localized to generated-function stub argument naming and source provenance in JuliaLowering."
+      - "Change is localized to generated-function stub argument naming in desugaring.jl and bug fixes for non-SyntaxTree returns in runtime.jl."
+      - "The runtime.jl fix corrects previously broken code paths (undefined variables ctx, ex, expanded)."
       - "New test exercises the previously failing case of unnamed arguments in @generated methods."
+      - "Required for Dates stdlib precompilation with JuliaLowering."
   open_questions: []
   recommendations:
     - 'Downstream tooling that inspects GeneratedFunctionStub.argnames should tolerate synthesized "#arg{i}#" placeholders for unnamed arguments.'
