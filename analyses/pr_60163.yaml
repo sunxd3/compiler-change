@@ -23,19 +23,20 @@ scope:
   pipeline_stages:
     - "Parsing"
     - "Lowering"
-    - "CodeInfo/IR"
+    - "LinearIR"
 analysis:
   intent:
-    summary: "Normalize `K\"meta\"` nodes when converting to `Expr`, and clean up related test coverage and metadata handling in JuliaLowering."
+    summary: "Fix K\"meta\" to Expr conversion by unquoting QuoteNode(Symbol) arguments, consolidate K\"meta\" kind registration in JuliaSyntax, and remove redundant CompileHints constructor."
     issue_links: []
+    quoted_from_pr: "A small tweak: JuliaLowering uses quoted symbols in meta forms, where Expr does not. Miscellaneous test fixes are also included (CompileHints was overwriting a constructor, and isdefined(Core, :_lower) isn't so necessary in this repository)"
   direct_changes:
-    - summary: "`K\"meta\"` nodes converted to `Expr` now unquote `QuoteNode(Symbol)` arguments to match `Expr(:meta, ...)` expectations."
+    - summary: "K\"meta\" nodes converted to Expr now unquote QuoteNode(Symbol) arguments to match Expr(:meta, :inline, ...) expectations."
       component: "JuliaSyntax integration"
       evidence:
-        - source: "code"
+        - source: "diff"
           path: "JuliaSyntax/src/integration/expr.jl"
-          loc: "630-644"
-          url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaSyntax/src/integration/expr.jl#L630-L644"
+          loc: "637-644"
+          url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaSyntax/src/integration/expr.jl#L637-L644"
           snippet: |
             elseif k == K"meta"
                 # Expr uses plain identifiers, but JuliaSyntax uses quoted (Symbol) identifiers
@@ -45,49 +46,34 @@ analysis:
                     end
                 end
             end
-    - summary: "`meta` is now registered as a JuliaSyntax kind in the base Julia syntax list."
+    - summary: "K\"meta\" kind moved from JuliaLowering to JuliaSyntax kind registration, avoiding duplicate registration."
       component: "JuliaSyntax kinds"
       evidence:
-        - source: "code"
+        - source: "diff"
           path: "JuliaSyntax/src/julia/kinds.jl"
-          loc: "1026-1036"
-          url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaSyntax/src/julia/kinds.jl#L1026-L1036"
+          loc: "1034-1036"
+          url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaSyntax/src/julia/kinds.jl#L1034-L1036"
           snippet: |
-            "char"           # A char string node (containing delims + char data)
-            "macrocall"
-            "parameters"     # the list after ; in f(; a=1)
-            "toplevel"
-            "tuple"
-            "ref"
-            "vect"
             "parens"
             "importpath"
             "meta"
-            # Concatenation syntax
-    - summary: "Lowering collects `K\"meta\"` hints into `ctx.meta`, then materializes `CompileHints` for `K\"code_info\"` metadata."
+        - source: "diff"
+          path: "JuliaLowering/src/kinds.jl"
+          loc: "21-25"
+          url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaLowering/src/kinds.jl#L21-L25"
+          snippet: |
+            # A (quoted) `Symbol`
+            "Symbol"
+            # QuoteNode; not quasiquote
+            "inert"
+            # TODO: Use `meta` for inbounds and loopinfo etc?
+    - summary: "Removed redundant CompileHints(Dict) constructor; compile_lambda now builds CompileHints iteratively."
       component: "JuliaLowering linear IR"
       evidence:
-        - source: "code"
+        - source: "diff"
           path: "JuliaLowering/src/linear_ir.jl"
-          loc: "807-816"
-          url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaLowering/src/linear_ir.jl#L807-L816"
-          snippet: |
-            elseif k == K"meta"
-                @chk numchildren(ex) >= 1
-                if ex[1].name_val in ("inline", "noinline", "propagate_inbounds",
-                                      "nospecializeinfer", "aggressive_constprop", "no_constprop")
-                    for c in children(ex)
-                        ctx.meta[Symbol(c.name_val)] = true
-                    end
-                elseif ex[1].name_val === "purity"
-                    ctx.meta[Symbol(ex[1].name_val)] = ex[2].value::Base.EffectsOverride
-                else
-                    emit(ctx, ex)
-                end
-        - source: "code"
-          path: "JuliaLowering/src/linear_ir.jl"
-          loc: "1105-1112"
-          url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaLowering/src/linear_ir.jl#L1105-L1112"
+          loc: "1105-1111"
+          url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaLowering/src/linear_ir.jl#L1105-L1111"
           snippet: |
             code = renumber_body(ctx, ctx.code, slot_rewrites)
             meta = CompileHints()
@@ -96,117 +82,166 @@ analysis:
             end
             @ast ctx ex [K"code_info"(is_toplevel_thunk=ex.is_toplevel_thunk,
                                       slots=slots, meta=meta)
-    - summary: "Integration test now exercises the `@propagate_inbounds @inline` meta form via JuliaLowering activation, covering the prior meta conversion edge case."
+        - source: "diff"
+          path: "JuliaLowering/src/ast.jl"
+          loc: "539"
+          url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaLowering/src/ast.jl#L539"
+          snippet: |
+            const CompileHints = Base.ImmutableDict{Symbol,Any}
+    - summary: "Integration test for @propagate_inbounds @inline meta conversion enabled (previously commented as broken)."
       component: "JuliaLowering tests"
       evidence:
         - source: "test"
           path: "JuliaLowering/test/hooks.jl"
-          loc: "27-84"
-          url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaLowering/test/hooks.jl#L27-L84"
+          loc: "83"
+          url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaLowering/test/hooks.jl#L83"
           snippet: |
-            function jeval(str)
-                prog = parseall(Expr, str)
-                local out
-                try
-                    JL.activate!()
-                    out = Core.eval(test_mod, prog)
-                finally
-                    JL.activate!(false)
-                end
-            end
-            @testset "integration: `JuliaLowering.activate!`" begin
-                out = jeval("global asdf = 1")
-                @test out === 1
-                @test isdefined(test_mod, :asdf)
-
-                out = jeval("module M; x = 1; end")
-                @test out isa Module
-                @test isdefined(test_mod, :M)
-                @test isdefined(test_mod.M, :x)
-
-                @test jeval("@ccall jl_value_ptr(nothing::Any)::Ptr{Cvoid}") isa Ptr{Cvoid}
-
-                # Tricky cases with symbols
-                out = jeval("""module M2
-                        Base.@constprop :aggressive function f(x); x; end
-                        const what = ccall(:jl_value_ptr, Ptr{Cvoid}, (Any,), Core.nothing)
-                    end""")
-                @test out isa Module
-                @test isdefined(test_mod, :M2)
-                @test isdefined(test_mod.M2, :f)
-                @test isdefined(test_mod.M2, :what)
-
-                out = jeval(""" "docstring" module M3 end """)
-                @test out isa Module
-                @test isdefined(test_mod, :M3)
-
-                # Macros may produce toplevel expressions.  Note that julia handles
-                # this case badly (macro expansion replaces M5_inner with a
-                # globalref) and we handle esc(:M5_inner) badly
-                out = jeval("""module M5
-                    macro newmod()
-                        return quote
-                            let a = 1
-                                $(Expr(:toplevel,
-                                       Expr(:module, true, :M5_inner,
-                                            Expr(:block, :(global asdf = 1)))))
-                            end
-                        end
-                    end
-                    @newmod()
-                    end""")
-                @test out isa Module
-                @test isdefined(test_mod, :M5)
-                @test isdefined(test_mod.M5, :M5_inner)
-                @test isdefined(test_mod.M5.M5_inner, :asdf)
-
-                @test jeval("Base.@propagate_inbounds @inline meta_double_quote_issue(x) = x") isa Function
-            end
+            @test jeval("Base.@propagate_inbounds @inline meta_double_quote_issue(x) = x") isa Function
   secondary_effects:
-    - effect: "`Expr(:meta, ...)` arguments produced via JuliaSyntax no longer retain quoted symbols, which stabilizes meta-processing during lowering and macro expansion."
+    - effect: "Expr(:meta, ...) arguments produced via JuliaSyntax no longer retain quoted symbols, which stabilizes meta-processing during lowering and macro expansion."
       mechanism: |
-        node_to_expr(...) converts SyntaxNode -> Expr  [JuliaSyntax/src/integration/expr.jl:225-299]
-          -> parseargs!(...) builds Expr args with fixup_Expr_child  [JuliaSyntax/src/integration/expr.jl:200-215]
-          -> _node_to_expr(...) handles kind-specific rewrites  [JuliaSyntax/src/integration/expr.jl:317-330]
-            -> K"meta" branch unquotes QuoteNode(Symbol) to Symbol  [JuliaSyntax/src/integration/expr.jl:630-643]
+        _node_to_expr(retexpr, loc, srcrange, nodehead, args, ...) [JuliaSyntax/src/integration/expr.jl:319]
+          -> handles K"meta" at line 637-643
+          -> for each arg: if a isa QuoteNode && a.value isa Symbol, args[i] = a.value
+        This ensures Expr(:meta, :inline, :propagate_inbounds) has Symbol args, not QuoteNode(:inline).
       downstream_surfaces:
-        - "Macro expansion paths that expect Expr(:meta, :inline, ...)"
-        - "JuliaLowering activation that evaluates Expr ASTs via parseall(Expr, ...)"
+        - "Macro expansion paths that expect Expr(:meta, :inline, ...) with Symbol arguments"
+        - "JuliaLowering activation via parseall(Expr, ...) which relies on correct Expr format"
+        - "Any downstream tooling pattern-matching on Expr(:meta, ...) argument types"
       likelihood: "high"
       impact: "medium"
-    - effect: "`CodeInfo.meta` is now materialized by folding `ctx.meta` into `CompileHints`, which keeps metadata in an ImmutableDict and avoids passing a raw Dict downstream."
+      evidence:
+        - source: "diff"
+          path: "JuliaSyntax/src/integration/expr.jl"
+          loc: "637-644"
+          url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaSyntax/src/integration/expr.jl#L637-L644"
+          snippet: |
+            elseif k == K"meta"
+                # Expr uses plain identifiers, but JuliaSyntax uses quoted (Symbol) identifiers
+                for (i, a) in enumerate(args)
+                    if a isa QuoteNode && a.value isa Symbol
+                        args[i] = a.value
+                    end
+                end
+            end
+    - effect: "Parallel QuoteNode unpacking in _to_lowered_expr ensures consistency between SyntaxTree->Expr paths."
       mechanism: |
-        compile(...) records meta hints into ctx.meta  [JuliaLowering/src/linear_ir.jl:807-816]
-        -> compile_lambda(...) folds ctx.meta into CompileHints  [JuliaLowering/src/linear_ir.jl:1105-1112]
-        -> K"code_info" node stores meta=CompileHints(...)  [JuliaLowering/src/linear_ir.jl:1110-1112]
+        _to_lowered_expr(ex::SyntaxTree, stmt_offset) [JuliaLowering/src/eval.jl:407-413]
+          -> K"meta" branch unpacks QuoteNode for first argument
+          -> args[1] = arg1.value where arg1 isa QuoteNode
+        This code path handles SyntaxTree K"meta" -> lowered Expr(:meta) conversion,
+        complementing the JuliaSyntax node_to_expr path which handles parsed K"meta" nodes.
       downstream_surfaces:
-        - "Core.Compiler / tooling that reads CodeInfo.meta (JET, IRTools, GPUCompiler)"
-      likelihood: "medium"
+        - "CodeInfo generation from SyntaxTree (to_code_info call chain)"
+        - "Any tooling inspecting lowered IR containing Expr(:meta)"
+      likelihood: "high"
       impact: "low"
+      evidence:
+        - source: "diff"
+          path: "JuliaLowering/src/eval.jl"
+          loc: "407-413"
+          url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaLowering/src/eval.jl#L407-L413"
+          snippet: |
+            elseif k == K"meta"
+                args = Any[_to_lowered_expr(e, stmt_offset) for e in children(ex)]
+                # Unpack K"Symbol" QuoteNode as `Expr(:meta)` requires an identifier here.
+                arg1 = args[1]
+                @assert arg1 isa QuoteNode
+                args[1] = arg1.value
+                Expr(:meta, args...)
+    - effect: "K\"meta\" kind consolidation removes redundant registration, preventing potential kind ID conflicts."
+      mechanism: |
+        Before: K"meta" registered in both:
+          - JuliaLowering/src/kinds.jl (as extension kind)
+          - JuliaSyntax/src/julia/kinds.jl (would conflict)
+        After: K"meta" only registered in JuliaSyntax/src/julia/kinds.jl:1035
+        JuliaLowering still uses K"meta" but now relies on JuliaSyntax's registration.
+      downstream_surfaces:
+        - "Any code comparing K\"meta\" kind IDs across modules"
+        - "Tooling that inspects registered kinds"
+      likelihood: "low"
+      impact: "low"
+      evidence:
+        - source: "diff"
+          path: "JuliaLowering/src/kinds.jl"
+          loc: "21-25"
+          url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaLowering/src/kinds.jl#L21-L25"
+          snippet: |
+            # A (quoted) `Symbol`
+            "Symbol"
+            # QuoteNode; not quasiquote
+            "inert"
+            # TODO: Use `meta` for inbounds and loopinfo etc?
   compatibility:
     internal_api:
-      - field: "CodeInfo.meta (CompileHints)"
-        change: "Metadata is constructed by iterating ctx.meta into CompileHints rather than via direct Dict conversion."
-        affected_tools:
-          - tool: "JET"
-            usage: "Reads CodeInfo metadata during inference diagnostics."
-          - tool: "IRTools"
-            usage: "Inspects lowered CodeInfo metadata for IR transformations."
+      - summary: "CompileHints(Dict) constructor removed; use iterative CompileHints(parent, k, v) instead."
+        evidence:
+          - source: "diff"
+            path: "JuliaLowering/src/ast.jl"
+            loc: "539"
+            url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaLowering/src/ast.jl#L539"
+            snippet: |
+              const CompileHints = Base.ImmutableDict{Symbol,Any}
     behavioral:
-      - surface: "Expr(:meta, ...) conversion"
-        change: "Quoted symbols in K\"meta\" are normalized to plain Symbol arguments in Expr form."
-        affected_code: "Macros or tooling that pattern-match QuoteNode(Symbol) within Expr(:meta, ...)"
+      - summary: "Expr(:meta, ...) arguments are now plain Symbols, not QuoteNode(Symbol). Code pattern-matching on QuoteNode in meta args will break."
+        evidence:
+          - source: "diff"
+            path: "JuliaSyntax/src/integration/expr.jl"
+            loc: "637-644"
+            url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaSyntax/src/integration/expr.jl#L637-L644"
+            snippet: |
+              elseif k == K"meta"
+                  # Expr uses plain identifiers, but JuliaSyntax uses quoted (Symbol) identifiers
+                  for (i, a) in enumerate(args)
+                      if a isa QuoteNode && a.value isa Symbol
+                          args[i] = a.value
+                      end
+                  end
+              end
   performance:
     compile_time:
-      - impact: "ESTIMATED: O(n) fold over ctx.meta entries per lambda to build CompileHints; n is number of meta hints (typically small)."
+      - summary: "ESTIMATED: O(n) iteration over ctx.meta entries per lambda to build CompileHints; n is typically small (0-5 meta hints)."
+        evidence:
+          - source: "diff"
+            path: "JuliaLowering/src/linear_ir.jl"
+            loc: "1106-1109"
+            url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaLowering/src/linear_ir.jl#L1106-L1109"
+            snippet: |
+              meta = CompileHints()
+              for (k, v) in ctx.meta
+                  meta = CompileHints(meta, k, v)
+              end
     runtime:
-      - impact: "No runtime changes expected; metadata conversion is compile-time only."
+      - summary: "No runtime impact; changes are compile-time only for metadata handling."
+        evidence:
+          - source: "diff"
+            path: "JuliaLowering/src/linear_ir.jl"
+            loc: "1106-1109"
+            url: "https://github.com/JuliaLang/julia/blob/602e5dfcdc/JuliaLowering/src/linear_ir.jl#L1106-L1109"
+            snippet: |
+              meta = CompileHints()
+              for (k, v) in ctx.meta
+                  meta = CompileHints(meta, k, v)
+              end
+  tests:
+    changed_files:
+      - "JuliaLowering/test/hooks.jl"
+    new_behavior_assertions:
+      - "Base.@propagate_inbounds @inline combined meta macros now work through JuliaLowering.activate! path"
+      - "Test verifies meta_double_quote_issue function definition succeeds via jeval()"
+    coverage_gaps:
+      - "No explicit test for K\"meta\" -> Expr conversion with multiple QuoteNode arguments"
+      - "No test for edge case where meta args contain non-Symbol QuoteNodes"
   risk:
     level: "low"
     rationale:
       - "Change is limited to metadata conversion and JuliaSyntax Expr normalization."
-      - "Added test exercises the previously problematic meta conversion path."
-  open_questions: []
+      - "Previously broken test now passes, indicating the fix addresses a real issue."
+      - "CompileHints constructor removal is a refactor that maintains equivalent behavior."
+      - "K\"meta\" kind consolidation is a cleanup with no semantic change."
+  open_questions:
+    - "Should other QuoteNode arguments in K\"meta\" (non-Symbol values) also be unpacked?"
   recommendations:
-    - "Downstream tools should treat Expr(:meta, ...) arguments as plain Symbols rather than QuoteNodes."
-    - "When constructing CompileHints, follow the iterative pattern used in compile_lambda instead of passing raw Dicts."
+    - "Downstream tools should treat Expr(:meta, ...) arguments as plain Symbols, not QuoteNodes."
+    - "When constructing CompileHints, use the iterative pattern: meta = CompileHints(meta, k, v)."
+    - "Tools checking for K\"meta\" kind should not assume it is registered in JuliaLowering."
