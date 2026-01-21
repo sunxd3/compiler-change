@@ -28,8 +28,8 @@ analysis:
       evidence:
         - source: "code"
           path: "JuliaLowering/src/desugaring.jl"
-          loc: "4375-4405"
-          url: "https://github.com/JuliaLang/julia/blob/9a85490787e9ac317fe4310ea2182c71bccc7416/JuliaLowering/src/desugaring.jl#L4375-L4405"
+          loc: "4375-4406"
+          url: "https://github.com/JuliaLang/julia/blob/9a85490787e9ac317fe4310ea2182c71bccc7416/JuliaLowering/src/desugaring.jl#L4375-L4406"
           snippet: |
             function isquotedmacrocall(ex)
                 kind(ex) == K"call" || return false
@@ -66,7 +66,6 @@ analysis:
         - source: "rg"
           path: "JuliaLowering/src/desugaring.jl"
           loc: "4387,4474"
-          url: "https://github.com/JuliaLang/julia/blob/9a85490787e9ac317fe4310ea2182c71bccc7416/JuliaLowering/src/desugaring.jl#L4387-L4474"
           snippet: |
             $ rg -n "expand_doc" JuliaLowering/src/desugaring.jl
             4387:function expand_doc(ctx, ex, docex, mod=ctx.mod)
@@ -90,8 +89,8 @@ analysis:
       evidence:
         - source: "code"
           path: "test/JuliaLowering_stdlibs.jl"
-          loc: "3-12"
-          url: "https://github.com/JuliaLang/julia/blob/9a85490787e9ac317fe4310ea2182c71bccc7416/test/JuliaLowering_stdlibs.jl#L3-L12"
+          loc: "3-13"
+          url: "https://github.com/JuliaLang/julia/blob/9a85490787e9ac317fe4310ea2182c71bccc7416/test/JuliaLowering_stdlibs.jl#L3-L13"
           snippet: |
             # known precompilation failures under JL
             const INCOMPATIBLE_STDLIBS = String[
@@ -108,8 +107,8 @@ analysis:
     - effect: "Docstrings immediately preceding quoted macrocalls now flow through regular desugaring instead of doc-binding, preventing the previous crash but leaving doc! behavior unimplemented for that form."
       mechanism: |
         expand_forms_2(ctx, ex, docs=nothing) dispatches K"doc"  [desugaring.jl:4472-4474]
-          -> expand_doc(ctx, ex[2], ex)  [desugaring.jl:4387]
-          -> isquotedmacrocall(ex) checks for call(Value(interpolate_ast), inert(macrocall), ...)  [desugaring.jl:4375-4383]
+          -> expand_doc(ctx, ex[2], ex)  [desugaring.jl:4387-4406]
+          -> isquotedmacrocall(ex) checks for call(Value(interpolate_ast), inert(macrocall), ...)  [desugaring.jl:4375-4385]
           -> expand_forms_2(ctx, ex, docex) to lower the macrocall as a normal expression (docs carried but no bind_static_docs!/doc! path)  [desugaring.jl:4397-4399]
       downstream_surfaces:
         - "Docstring lowering for quoted macrocall syntax (:@macro)"

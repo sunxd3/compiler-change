@@ -39,8 +39,8 @@ analysis:
       evidence:
         - source: "code"
           path: "src/julia-syntax.scm"
-          loc: "3950-3951"
-          url: "https://github.com/JuliaLang/julia/blob/268f80d701808edc5686b83d8b9d8ca46df48abe/src/julia-syntax.scm#L3950-L3951"
+          loc: "3948-3954"
+          url: "https://github.com/JuliaLang/julia/blob/268f80d701808edc5686b83d8b9d8ca46df48abe/src/julia-syntax.scm#L3948-L3954"
           snippet: |
             (let ((vi     (car (lam:vinfo lam)))
                   (args   (lam:argnames lam))
@@ -166,10 +166,16 @@ analysis:
       mechanism: |
         lambda-optimize-vars!() [julia-syntax.scm:3935]
           determines which variables are "never-undef" (always assigned before use)
-          -> For single-assigned, never-undef variables, clears the `capt` bit [julia-syntax.scm:4079-4080]
-            (set-car! (cddr v) (logand (caddr v) (lognot 5)))
+          -> For single-assigned, never-undef variables, clears the `capt` bit [julia-syntax.scm:4078-4081]
+            (for-each (lambda (v)
+              (if (and (vinfo:sa v) (vinfo:never-undef v))
+                (set-car! (cddr v) (logand (caddr v) (lognot 5)))))
+              vi)
           -> is-var-boxed?() [julia-syntax.scm:4084-4088]
             checks (and vi (vinfo:asgn vi) (vinfo:capt vi))
+          -> Closure conversion uses is-var-boxed? at [julia-syntax.scm:4395]:
+            (cond ((is-var-boxed? v lam) '(core Box)) ...)
+            to determine if closure field type is Core.Box
           -> If capt is NOT cleared, variable is boxed via Core.Box
           -> This PR makes the analysis more conservative: arguments in loops and
              variables in while-true with break now correctly remain boxed

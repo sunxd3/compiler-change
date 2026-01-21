@@ -33,10 +33,9 @@ analysis:
       evidence:
         - source: "code"
           path: "Compiler/src/abstractinterpretation.jl"
-          loc: "1571-1707"
-          url: "https://github.com/JuliaLang/julia/blob/f20e7549dc1e7a04849566cb80e0507969f848eb/Compiler/src/abstractinterpretation.jl#L1571-L1707"
+          loc: "1572-1708"
+          url: "https://github.com/JuliaLang/julia/blob/f20e7549dc1e7a04849566cb80e0507969f848eb/Compiler/src/abstractinterpretation.jl#L1572-L1708"
           snippet: |
-            # simulate iteration protocol on container type up to fixpoint
             function abstract_iteration(interp::AbstractInterpreter, @nospecialize(itft), @nospecialize(itertype),
                                         vtypes::Union{VarTable,Nothing}, sv::AbsIntState)
                 if isa(itft, Const)
@@ -411,10 +410,10 @@ analysis:
   secondary_effects:
     - effect: "Inference over _apply_iterate arguments continues to unroll iterator shapes with fewer captured-variable boxes when the task state machine suspends/resumes."
       mechanism: |
-        infercalls(interp, sv) in abstract_apply  [Compiler/src/abstractinterpretation.jl:1764-1804]
-          -> precise_container_type(interp, itft.contents, ti, vtypes, sv)  [Compiler/src/abstractinterpretation.jl:1769-1779]
-          -> abstract_iteration(interp, itft, typ, vtypes, sv)  [Compiler/src/abstractinterpretation.jl:1567-1707]
-          -> inferiterate_2arg() uses let iteratef = iteratef to avoid boxing captured iteratef across resumable tasks.
+        infercalls(interp, sv) in abstract_apply  [Compiler/src/abstractinterpretation.jl:1746]
+          -> precise_container_type(interp, itft.contents, ti, vtypes, sv)  [Compiler/src/abstractinterpretation.jl:1772, 1780]
+          -> abstract_iteration(interp, itft, typ, vtypes, sv)  [Compiler/src/abstractinterpretation.jl:1572-1708]
+          -> let iteratef = iteratef [line 1580] prevents boxing captured iteratef across resumable task suspensions.
       downstream_surfaces:
         - "Core.Compiler inference for _apply_iterate"
         - "JET/IRTools consumers of inference metadata (reduced heap pressure in analysis)"
