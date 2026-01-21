@@ -28,7 +28,7 @@ scope:
     - "LinearIR"
 analysis:
   intent:
-    summary: "Concretize SyntaxTree/SyntaxList graph typing by parameterizing on attribute storage (Attrs) and requiring SyntaxGraph{Attrs} in lowering contexts to avoid abstract graph types and reduce specialization churn."
+    summary: "Remove abstract graph type parameter from SyntaxTree/SyntaxList, keeping only abstract attribute storage (Attrs). The PR author noticed partially-parameterized SyntaxTrees in signatures causing method instance explosion. Change reduces precompilation time by ~25% according to PR description."
     issue_links: []
   direct_changes:
     - summary: "SyntaxTree now stores a concrete SyntaxGraph{Attrs} instead of an abstract graph type parameter, tying the tree directly to the attribute storage type."
@@ -36,8 +36,8 @@ analysis:
       evidence:
         - source: "code"
           path: "JuliaSyntax/src/porcelain/syntax_graph.jl"
-          loc: "190-198"
-          url: "https://github.com/JuliaLang/julia/blob/c711544f4e229c9bde575e76918ee311b72914b2/JuliaSyntax/src/porcelain/syntax_graph.jl#L190-L198"
+          loc: "189-198"
+          url: "https://github.com/JuliaLang/julia/blob/c711544f4e229c9bde575e76918ee311b72914b2/JuliaSyntax/src/porcelain/syntax_graph.jl#L189-L198"
           snippet: |
             """
                 struct SyntaxTree
@@ -49,7 +49,7 @@ analysis:
                 _graph::SyntaxGraph{Attrs}
                 _id::NodeId
             end
-    - summary: "SyntaxList is now parameterized by attribute storage and explicitly stores SyntaxGraph{Attrs}, with a constructor that infers Attrs from the graph."
+    - summary: "SyntaxList is now parameterized by attribute storage and explicitly stores SyntaxGraph{Attrs}. The SyntaxList(ctx, v::Vector{SyntaxTree}) constructor was removed."
       component: "JuliaSyntax"
       evidence:
         - source: "code"
@@ -77,8 +77,8 @@ analysis:
       evidence:
         - source: "code"
           path: "JuliaLowering/src/closure_conversion.jl"
-          loc: "1-37"
-          url: "https://github.com/JuliaLang/julia/blob/c711544f4e229c9bde575e76918ee311b72914b2/JuliaLowering/src/closure_conversion.jl#L1-L37"
+          loc: "1-38"
+          url: "https://github.com/JuliaLang/julia/blob/c711544f4e229c9bde575e76918ee311b72914b2/JuliaLowering/src/closure_conversion.jl#L1-L38"
           snippet: |
             struct ClosureInfo{Attrs}
                 # Global name of the type of the closure
@@ -169,21 +169,39 @@ analysis:
   secondary_effects:
     - effect: "Lowering context types become more concrete, which can reduce specialization blow-up and precompile time in JuliaLowering-heavy workloads."
       mechanism: |
-        LinearIRContext(ctx, ...)  [JuliaLowering/src/linear_ir.jl:85-93]
-          -> graph = syntax_graph(ctx)  [JuliaLowering/src/linear_ir.jl:86]
-          -> Attrs = typeof(graph.attributes)  [JuliaLowering/src/linear_ir.jl:88]
-          -> LinearIRContext{Attrs} stores SyntaxGraph{Attrs} and SyntaxList{Attrs,...}
-             (replaces abstract graph typing for JumpTarget/JumpOrigin/etc.)
+        All lowering contexts now parameterize on Attrs (the attribute storage type) instead of GraphType:
+
+        MacroExpansionContext{Attrs}  [macro_expansion.jl:3]
+          -> graph::SyntaxGraph{Attrs}  [macro_expansion.jl:4]
+        DesugaringContext{Attrs}  [desugaring.jl:3]
+          -> graph::SyntaxGraph{Attrs}  [desugaring.jl:4]
+        ScopeResolutionContext{Attrs}  [scope_analysis.jl:55]
+          -> graph::SyntaxGraph{Attrs}  [scope_analysis.jl:56]
+        VariableAnalysisContext{Attrs}  [scope_analysis.jl:532]
+          -> graph::SyntaxGraph{Attrs}  [scope_analysis.jl:533]
+          -> method_def_stack::SyntaxList{Attrs, Vector{NodeId}}  [scope_analysis.jl:539]
+        ClosureConversionCtx{Attrs}  [closure_conversion.jl:11]
+          -> graph::SyntaxGraph{Attrs}  [closure_conversion.jl:12]
+        LinearIRContext{Attrs}  [linear_ir.jl:67]
+          -> graph::SyntaxGraph{Attrs}  [linear_ir.jl:68]
+          -> Attrs = typeof(graph.attributes)  [linear_ir.jl:88]
+
+        Helper structs also updated:
+        JumpTarget{Attrs}, JumpOrigin{Attrs}, FinallyHandler{Attrs}  [linear_ir.jl:28-58]
+        StatementListCtx{Ctx, Attrs}  [ast.jl:565]
+        LoweringIterator{Attrs}  [eval.jl:35]
       downstream_surfaces:
         - "Lowering pass caching / method instance count"
         - "Precompilation time for JuliaLowering consumers"
-      likelihood: "medium"
+      likelihood: "high"
       impact: "medium"
     - effect: "Custom graphs are no longer accepted by SyntaxTree/SyntaxList-based lowering contexts without wrapping in SyntaxGraph{Attrs}, reducing polymorphism at the SyntaxTree boundary."
       mechanism: |
-        SyntaxTree{Attrs} stores _graph::SyntaxGraph{Attrs}  [JuliaSyntax/src/porcelain/syntax_graph.jl:195-197]
-          -> SyntaxList{Attrs,...} stores graph::SyntaxGraph{Attrs}  [JuliaSyntax/src/porcelain/syntax_graph.jl:451-453]
-          -> ClosureConversionCtx/LinearIRContext now require SyntaxGraph{Attrs}  [JuliaLowering/src/closure_conversion.jl:11-12]
+        SyntaxTree{Attrs} stores _graph::SyntaxGraph{Attrs}  [syntax_graph.jl:195-197]
+          -> SyntaxList{Attrs,...} stores graph::SyntaxGraph{Attrs}  [syntax_graph.jl:451-453]
+          -> All contexts require SyntaxGraph{Attrs}, not abstract GraphType
+          -> Previously: struct ClosureConversionCtx{GraphType}; graph::GraphType
+          -> Now: struct ClosureConversionCtx{Attrs}; graph::SyntaxGraph{Attrs}
       downstream_surfaces:
         - "Packages that construct SyntaxTree with non-SyntaxGraph graphs"
         - "Custom AST graph experiments that relied on graph-type polymorphism"
@@ -197,18 +215,23 @@ analysis:
       - field: "SyntaxList{Attrs}::graph"
         change: "Now concretely typed as SyntaxGraph{Attrs}; downstream code depending on SyntaxList{GraphType} polymorphism will need refactoring."
         affected_tools: []
+      - field: "SyntaxList(ctx, v::Vector{SyntaxTree})"
+        change: "REMOVED - This constructor that converted a Vector{SyntaxTree} to SyntaxList was deleted. Code using this constructor must manually construct via SyntaxList(syntax_graph(ctx), NodeId[x._id for x in v])."
+        affected_tools: []
     behavioral: []
   performance:
     compile_time:
-      - "ESTIMATED: fewer method instances due to concrete SyntaxGraph{Attrs} typing in lowering contexts; verify with precompile metrics for JuliaLowering-heavy packages."
+      - "CLAIMED (PR author): Reduces precompilation time by about 25% for JuliaLowering. Author noted: 'we are down to less than double JuliaSyntax now!'"
+      - "ESTIMATED: Fewer method instances due to concrete SyntaxGraph{Attrs} typing in lowering contexts. The Attrs-based parameterization prevents partially-parameterized SyntaxTrees in method signatures."
     runtime: []
   risk:
     level: "low"
     rationale:
       - "No algorithmic behavior changes in parsing/lowering; changes are type-structural."
       - "Potential impact is mostly on internal API expectations about graph type parameters."
+      - "The removed SyntaxList(ctx, v::Vector{SyntaxTree}) constructor is an internal API unlikely to be used externally."
   open_questions:
     - "Are any downstream tools constructing SyntaxTree with custom graph types (non-SyntaxGraph) that now fail to type-check?"
-    - "Confirm the magnitude of precompilation-time improvements reported informally for JuliaLowering-heavy environments."
+    - "The claimed 25% precompilation improvement is from PR author observation; independent verification would strengthen confidence."
   recommendations:
     - "Run package CI or targeted precompile benchmarks for tools that specialize on SyntaxTree/SyntaxList types to confirm reduced method instance counts."
