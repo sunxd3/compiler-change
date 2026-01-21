@@ -64,8 +64,8 @@ analysis:
                     ]
         - source: "code"
           path: "JuliaLowering/src/desugaring.jl"
-          loc: "2171-2214"
-          url: "https://github.com/JuliaLang/julia/blob/625e8c7d268cdb7b3d8f7b077f9005db13a519b1/JuliaLowering/src/desugaring.jl#L2171-L2214"
+          loc: "2170-2221"
+          url: "https://github.com/JuliaLang/julia/blob/625e8c7d268cdb7b3d8f7b077f9005db13a519b1/JuliaLowering/src/desugaring.jl#L2170-L2221"
           snippet: |
             elseif k == K"Placeholder"
                 nothing
@@ -117,6 +117,8 @@ analysis:
                         throw(LoweringError(ex, "invalid syntax in variable declaration"))
                     end
                 end
+                makenode(ctx, ex, K"block", stmts)
+            end
     - summary: "Give positional placeholder arguments unique internal bindings (#argN#) while allowing duplicate positional placeholders; keep keyword placeholders as identifiers for uniqueness checking."
       component: "JuliaLowering desugaring"
       evidence:
@@ -220,10 +222,23 @@ analysis:
             for (i,arg) in enumerate(args)
                 (aname, atype, default, is_slurp) =
                     expand_function_arg(ctx, body_stmts, arg, i == length(args), false, i)
+        - source: "code"
+          path: "JuliaLowering/src/desugaring.jl"
+          loc: "3276-3283"
+          url: "https://github.com/JuliaLang/julia/blob/625e8c7d268cdb7b3d8f7b077f9005db13a519b1/JuliaLowering/src/desugaring.jl#L3276-L3283"
+          snippet: |
+            body_stmts = SyntaxList(ctx)
+            is_va = false
+            for (i, arg) in enumerate(children(args))
+                (aname, atype, default, is_slurp) =
+                    expand_function_arg(ctx, body_stmts, arg, i == numchildren(args), false, i)
+                is_va |= is_slurp
+                push!(arg_names, aname)
+                push!(arg_types, atype)
         - source: "test"
           path: "JuliaLowering/test/functions_ir.jl"
-          loc: "926-940"
-          url: "https://github.com/JuliaLang/julia/blob/625e8c7d268cdb7b3d8f7b077f9005db13a519b1/JuliaLowering/test/functions_ir.jl#L926-L940"
+          loc: "926-943"
+          url: "https://github.com/JuliaLang/julia/blob/625e8c7d268cdb7b3d8f7b077f9005db13a519b1/JuliaLowering/test/functions_ir.jl#L926-L943"
           snippet: |
             ########################################
             # Duplicate positional placeholders ok
@@ -238,8 +253,36 @@ analysis:
             7   SourceLocation::1:10
             8   (call core.svec %₅ %₆ %₇)
             9   --- method core.nothing %₈
-                slots: [slot₁/#self#(!read) slot₂/#arg1#(!read) slot₃/#arg2#(!read)]
+                slots: [slot₁/#self#(!read) slot₂/#arg1#(!read) slot₃/#arg2#(!read)]  # <-- #argN# naming
                 1   (return core.nothing)
+            10  latestworld
+            11  TestMod.f
+            12  (return %₁₁)
+        - source: "test"
+          path: "JuliaLowering/test/closures_ir.jl"
+          loc: "239-246"
+          url: "https://github.com/JuliaLang/julia/blob/625e8c7d268cdb7b3d8f7b077f9005db13a519b1/JuliaLowering/test/closures_ir.jl#L239-L246"
+          snippet: |
+            23  --- method core.nothing %₂₂
+                slots: [slot₁/#self#(!read) slot₂/#arg1#(!read) slot₃/g]  # <-- placeholder arg becomes #arg1#
+                1   TestMod.#f#g##2
+                2   static_parameter₁
+                3   (new %₁ %₂)
+                4   (= slot₃/g %₃)
+                5   slot₃/g
+                6   (return %₅)
+        - source: "test"
+          path: "JuliaLowering/test/functions_ir.jl"
+          loc: "1238-1244"
+          url: "https://github.com/JuliaLang/julia/blob/625e8c7d268cdb7b3d8f7b077f9005db13a519b1/JuliaLowering/test/functions_ir.jl#L1238-L1244"
+          snippet: |
+            ########################################
+            # Error: Duplicate keyword placeholder name
+            function f_kw_placeholders(; _=1, _=2); end
+            #---------------------
+            LoweringError:
+            function f_kw_placeholders(; _=1, _=2); end
+            #                                 ╙ ── function argument name not unique
     - summary: "Normalize placeholder identifiers during macro-expansion and avoid hasmethod(world=typemax(UInt)) by using a no-world fallback when macro_world is the 'latest' world."
       component: "JuliaLowering macro expansion"
       evidence:
@@ -339,17 +382,18 @@ analysis:
     - effect: "Slot names for placeholder positional arguments become stable internal identifiers (#argN#), affecting IR and reflection outputs that surface slot names."
       mechanism: |
         expand_forms_1() normalizes placeholder identifiers to K"Placeholder" nodes. [macro_expansion.jl:390-403]
-          -> expand_function_arg() assigns placeholder positional args a new_local_binding("#arg$(arg_id)#"), while keyword placeholders stay as identifiers. [desugaring.jl:2274-2333]
-          -> add_lambda_args() enforces uniqueness only for Identifier args, so the synthesized #argN# names avoid duplicate-name errors. [scope_analysis.jl:181-200]
+          -> expand_function_arg() assigns placeholder positional args a new_local_binding("#arg$(arg_id)#"), while keyword placeholders stay as identifiers. [desugaring.jl:2325-2333]
+          -> add_lambda_args() enforces uniqueness only for Identifier args (line 184), so the synthesized #argN# names avoid duplicate-name errors; Placeholder nodes are explicitly skipped (line 199). [scope_analysis.jl:181-203]
       downstream_surfaces:
         - "CodeInfo slotnames / IR dumps (affects IRTools.jl / JET.jl output comparisons)"
         - "MacroTools/IR printers that expect '_' placeholder slot names"
+        - "OpaqueClosure argument slot names (expand_opaque_closure also uses expand_function_arg at desugaring.jl:3280)"
       likelihood: "high"
       impact: "low"
-    - effect: "Placeholder decls in local/global now drop type assertions for `_::T` and `_::T = rhs`, which can elide intended convert/typeassert side effects in destructuring-heavy code." 
+    - effect: "Placeholder decls in local/global now drop type assertions for `_::T` and `_::T = rhs`, which can elide intended convert/typeassert side effects in destructuring-heavy code."
       mechanism: |
-        expand_assignment() skips emitting K"decl" when lhs is a placeholder. [desugaring.jl:1347-1364]
-          -> make_lhs_decls() returns early for placeholder-typed decls and explicitly notes that `_::T = val` ignores the LHS. [desugaring.jl:2171-2185]
+        expand_assignment() skips emitting K"decl" when lhs is a placeholder. [desugaring.jl:1360-1362]
+          -> make_lhs_decls() returns early for placeholder-typed decls (line 2184-2185) and explicitly notes that `_::T = val` ignores the LHS (TODO comment at lines 2179-2183). [desugaring.jl:2170-2186]
       downstream_surfaces:
         - "Destructuring assignments with typed placeholders in user code"
         - "Static analysis tools that rely on decl nodes for type assertions"
