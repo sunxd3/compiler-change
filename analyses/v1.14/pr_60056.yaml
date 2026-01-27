@@ -466,8 +466,6 @@ downstream_package_impact:
   Enzyme_jl: "none - runtime threading bugfix, does not affect differentiation"
   GPUCompiler: "none - runtime threading bugfix, GPU compilation unaffected"
   JET: "none - runtime threading bugfix, static analysis unaffected"
-  IRTools: "none - runtime threading bugfix, IR manipulation unaffected"
-  Cassette: "none - runtime threading bugfix, code transformation unaffected"
 
 code_path_trace:
   thread_handle_lifecycle_before_fix:

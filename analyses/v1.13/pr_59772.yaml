@@ -423,11 +423,6 @@ downstream_impact:
       JET.jl analyzes code statically and may inspect OpaqueClosure method instances.
       This fix doesn't change the analysis API, only ensures correct runtime behavior.
 
-  irtools:
-    relevance: "low"
-    explanation: |
-      IRTools manipulates IR but doesn't directly interact with the normalization path
-      affected by this fix.
 
   turing:
     relevance: "low"

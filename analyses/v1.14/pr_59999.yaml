@@ -218,8 +218,8 @@ analysis:
     surfaces:
       - "TOML file parsing with time values"
     notes: |
-      This PR has NO impact on downstream compiler tooling packages (JET, IRTools,
-      Enzyme, GPUCompiler, Cassette, etc.) as it only affects TOML parsing in the
+      This PR has NO impact on downstream compiler tooling packages (JET,
+      Enzyme, GPUCompiler, etc.) as it only affects TOML parsing in the
       standard library.
 
       For general Julia packages that parse TOML files with time values:

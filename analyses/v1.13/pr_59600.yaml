@@ -335,7 +335,7 @@ downstream_package_impact:
         Packages implementing custom array types backed by Memory can now
         use a documented public function to get MemoryRef indices.
 
-    - name: "Compiler tooling (JET, Enzyme.jl, GPUCompiler, IRTools)"
+    - name: "Compiler tooling (JET, Enzyme.jl, GPUCompiler)"
       impact: "None - no changes to compiler internals"
       details: |
         The Compiler module imports memoryrefoffset separately at Compiler/src/Compiler.jl:43

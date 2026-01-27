@@ -762,8 +762,6 @@ downstream_package_impact:
   Enzyme_jl: "potentially affected - relies heavily on JIT compilation for AD transforms; would have been affected by the deadlock on ARM64 macOS"
   GPUCompiler: "potentially affected - uses JIT infrastructure for GPU code generation; ARM64 builds would have been affected"
   JET: "none - static analysis does not depend on JIT memory management"
-  IRTools: "none - IR manipulation does not depend on JIT memory management"
-  Cassette: "none - code transformation does not depend on JIT memory management"
 
 code_path_trace:
   jit_initialization:

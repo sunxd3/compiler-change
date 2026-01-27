@@ -314,8 +314,6 @@ analysis:
       - field: "CodeInfo.min_world / CodeInfo.max_world"
         change: "OpaqueClosure(IRCode) now copies world bounds from IRCode.valid_worlds when constructing CodeInfo."
         affected_tools:
-          - tool: "IRTools"
-            usage: "IRTools inspects CodeInfo metadata when building custom IR passes."
           - tool: "JET"
             usage: "JET relies on CodeInfo/MethodInstance metadata for inference diagnostics."
           - tool: "Enzyme"

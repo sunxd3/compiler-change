@@ -398,7 +398,7 @@ analysis:
 
   recommendations:
     - "No action required for downstream compiler packages"
-    - "This PR has zero impact on JET, Enzyme, IRTools, GPUCompiler, or Cassette"
+    - "This PR has zero impact on JET, Enzyme, or GPUCompiler"
     - "Code that allocates many float strings may see reduced GC pressure"
     - "High-performance logging code will benefit from reduced allocations"
 
@@ -455,9 +455,7 @@ notes: |
   Downstream package impact: NONE
   - JET: Not affected (no compiler internals changed)
   - Enzyme: Not affected (no codegen or AD-relevant changes)
-  - IRTools: Not affected (no IR format changes)
   - GPUCompiler: Not affected (no GPU codegen changes)
-  - Cassette: Not affected (no pass infrastructure changes)
 
   This is a pure performance optimization with no semantic changes.
 

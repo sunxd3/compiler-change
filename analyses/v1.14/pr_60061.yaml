@@ -406,8 +406,6 @@ downstream_package_impact:
   Enzyme_jl: "none - package loading change, does not affect differentiation"
   GPUCompiler: "none - package loading change, does not affect GPU code generation"
   JET: "none - package loading change, semantic analysis unaffected"
-  IRTools: "none - package loading change, IR manipulation unaffected"
-  Cassette: "none - package loading change, code transformation unaffected"
 
 code_path_trace:
   locate_package_env_main_loop:

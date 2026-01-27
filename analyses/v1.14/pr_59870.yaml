@@ -570,7 +570,7 @@ analysis:
           -> type_for_closure(...) emits eval_closure_type call  [JuliaLowering/src/closure_conversion.jl:285-301]
           -> eval_closure_type(...) constructs Core._structtype with Core.Box for boxed fields  [JuliaLowering/src/runtime.jl:156-177]
       downstream_surfaces:
-        - "JuliaLowering IR consumers (JET/IRTools-style tooling)"
+        - "JuliaLowering IR consumers (JET-style tooling)"
         - "OpaqueClosure/closure layout inspection"
       likelihood: "low"
       impact: "low"
@@ -650,4 +650,4 @@ analysis:
     - "If enabling JuliaSyntax via enable_in_core!(), run parser compatibility tests for macros/REPL to validate behavior changes."
     - "If enabling JuliaLowering via activate!(), run comprehensive lowering tests as this replaces the entire lowering pipeline (macro expansion through IR linearization)."
     - "CI owners should account for the new JuliaSyntax/JuliaLowering test groups when estimating runtimes."
-    - "Tools inspecting closure IR (JET, Enzyme, IRTools) should verify compatibility with JuliaLowering's new_opaque_closure and opaque_closure_method IR nodes."
+    - "Tools inspecting closure IR (JET, Enzyme) should verify compatibility with JuliaLowering's new_opaque_closure and opaque_closure_method IR nodes."

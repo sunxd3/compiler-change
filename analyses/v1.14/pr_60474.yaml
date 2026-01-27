@@ -431,7 +431,6 @@ analysis:
         These kinds are required for parsing to EST but do not correspond to surface syntax.
       downstream_surfaces:
         - "Tools checking JuliaSyntax.is_* kind predicates"
-        - "IRTools, Cassette that inspect kind definitions"
       likelihood: "low"
       impact: "low"
   compatibility:

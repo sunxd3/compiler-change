@@ -253,7 +253,7 @@ analysis:
         method, and the 1-argument version automatically works. This simplifies
         the implementation burden for package authors.
 
-    - package: "Turing.jl, Enzyme.jl, GPUCompiler, JET, IRTools, Cassette"
+    - package: "Turing.jl, Enzyme.jl, GPUCompiler, JET"
       impact: "none"
       rationale: |
         This PR modifies only the public API dispatch for any/all on AbstractArray.
@@ -512,7 +512,7 @@ independent_review:
   recommendations:
     - "Consider updating docstrings at reducedim.jl:874 and 948 to remove ::Function type annotation"
     - "Consider adding a test specifically for callable structs with plain Array (not just Range)"
-    - "No action needed for Turing.jl, Enzyme.jl, GPUCompiler, JET, IRTools, or Cassette"
+    - "No action needed for Turing.jl, Enzyme.jl, GPUCompiler, or JET"
 
   confidence: "high"
   rationale: |

@@ -385,7 +385,7 @@ analysis:
           -> expand_function_arg() assigns placeholder positional args a new_local_binding("#arg$(arg_id)#"), while keyword placeholders stay as identifiers. [desugaring.jl:2325-2333]
           -> add_lambda_args() enforces uniqueness only for Identifier args (line 184), so the synthesized #argN# names avoid duplicate-name errors; Placeholder nodes are explicitly skipped (line 199). [scope_analysis.jl:181-203]
       downstream_surfaces:
-        - "CodeInfo slotnames / IR dumps (affects IRTools.jl / JET.jl output comparisons)"
+        - "CodeInfo slotnames / IR dumps (affects JET.jl output comparisons)"
         - "MacroTools/IR printers that expect '_' placeholder slot names"
         - "OpaqueClosure argument slot names (expand_opaque_closure also uses expand_function_arg at desugaring.jl:3280)"
       likelihood: "high"
@@ -413,8 +413,6 @@ analysis:
       - field: "CodeInfo.slotnames for placeholder args"
         change: "Placeholder positional arguments are now named #argN# instead of '_' in lowered IR."
         affected_tools:
-          - tool: "IRTools"
-            usage: "IRTools/IR printers display slotnames; tests comparing '_' placeholders may need updates."
           - tool: "JET"
             usage: "JET diagnostics include CodeInfo slotnames; placeholder names may shift in reports."
     behavioral:

@@ -188,7 +188,6 @@ downstream_impact:
 
   not_affected:
     - "Compiler tooling (JET, GPUCompiler, Enzyme)"
-    - "IR manipulation packages (IRTools, Cassette)"
     - "Standard test usage via @testset macro"
 
 changelog_entry:

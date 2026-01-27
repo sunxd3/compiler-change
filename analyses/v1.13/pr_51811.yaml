@@ -337,8 +337,8 @@ analysis:
       - "CLI --banner option"
       - "Tagged release builds (due to bug)"
     notes: |
-      This PR has NO impact on compiler internals or packages like JET, Enzyme, IRTools,
-      GPUCompiler, or Cassette. It is purely a user-facing REPL display change.
+      This PR has NO impact on compiler internals or packages like JET, Enzyme,
+      or GPUCompiler. It is purely a user-facing REPL display change.
 
       The only potential breakage is:
       1. Code calling REPL.banner(io; short=true) - must update to banner(io, :short)

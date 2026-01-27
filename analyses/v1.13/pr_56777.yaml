@@ -285,8 +285,6 @@ analysis:
       JET: "Not affected - standard library bug fix only"
       GPUCompiler: "Not affected"
       Enzyme: "Not affected"
-      IRTools: "Not affected"
-      Cassette: "Not affected"
     general:
       - package: "Any package using stack() with abstract array types"
         impact: "Positive - bug fix corrects output dimensions"

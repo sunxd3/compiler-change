@@ -468,7 +468,7 @@ analysis:
           -> runtime_sym_lookup chooses jl_load_and_lookup (static) or jl_lazy_load_and_lookup (runtime)
           -> jl_lazy_load_and_lookup resolves symbols/strings and can infer library via jl_dlfind when lib is omitted
       downstream_surfaces:
-        - "IR consumers inspecting Expr(:foreigncall) arguments (IRTools, GPUCompiler, Enzyme)"
+        - "IR consumers inspecting Expr(:foreigncall) arguments (GPUCompiler, Enzyme)"
         - "Libdl/LazyLibrary patterns for ccall"
       likelihood: "high"
       impact: "medium"

@@ -557,4 +557,4 @@ analysis:
     - "Audit downstream packages that call Core.Intrinsics.atomic_fence directly to pass an explicit syncscope (:system for ordinary fences)."
     - "Prefer Threads.atomic_fence_light/heavy only when the synchronization pattern is asymmetric; otherwise keep using Threads.atomic_fence()."
     - "Consider adding microbenchmarks for jl_membarrier implementations to detect regressions in latency-sensitive workloads."
-    - "Document that GPUCompiler and IRTools users constructing intrinsic calls must update to 2-argument atomic_fence."
+    - "Document that GPUCompiler users constructing intrinsic calls must update to 2-argument atomic_fence."

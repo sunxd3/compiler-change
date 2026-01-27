@@ -1,6 +1,6 @@
 ---
 name: analyze-julia-compiler-pr
-description: Analyze a Julia compiler PR for downstream impact, secondary effects, and changelog generation. Use when asked to analyze a PR number, when working with compiler_prs.json data, or when the user asks about Julia compiler changes and their effects on downstream packages like Turing.jl, Enzyme.jl, GPUCompiler, JET, IRTools, or Cassette.
+description: Analyze a Julia compiler PR for downstream impact, secondary effects, and changelog generation. Use when asked to analyze a PR number, when working with compiler_prs.json data, or when the user asks about Julia compiler changes and their effects on downstream packages like Turing.jl, Enzyme.jl, GPUCompiler, or JET.
 ---
 
 # Julia Compiler PR Analysis Skill
@@ -93,7 +93,7 @@ Check for effects on:
 - **OpaqueClosure** - creation, inference, optimization
 - **Generated functions** - `@generated` execution
 - **World age / invalidation** - method tables, caches
-- **Internal API consumers** - IRTools, Cassette, JET, GPUCompiler, Enzyme
+- **Internal API consumers** - JET, GPUCompiler, Enzyme
 - **Effect flags** - `:consistent`, `:effect_free`, `:nothrow`, etc.
 
 ### G. Evidence & Confidence
@@ -329,7 +329,7 @@ internal_api: "Downstream tooling may need to account for changes"
 internal_api:
   - field: "BindingInfo.is_always_defined"
     change: "Now reset to false for arguments, then recomputed by analyze_def_and_use!"
-    affected_tools: ["JET (reads binding flags)", "IRTools (inspects closure fields)"]
+    affected_tools: ["JET (reads binding flags)"]
 ```
 
 ### 10. Quantify or bound performance claims
@@ -383,7 +383,7 @@ snippet: |
 
 **BAD:**
 ```yaml
-affected_tools: ["JET", "IRTools"]
+affected_tools: ["JET"]
 ```
 
 **GOOD:**
@@ -391,8 +391,6 @@ affected_tools: ["JET", "IRTools"]
 affected_tools:
   - tool: "JET"
     usage: "JET.jl reads BindingInfo.is_captured in src/abstractinterpret/inferenceerrorreport.jl"
-  - tool: "IRTools"
-    usage: "IRTools inspects closure field layout in src/reflection/utils.jl"
 ```
 
 ## Key Questions Per PR

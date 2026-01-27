@@ -350,7 +350,7 @@ analysis:
       - "Any code that captures and parses Markdown terminal output"
     notes: |
       This PR has NO impact on compiler internals or packages like JET, Enzyme,
-      IRTools, GPUCompiler, or Cassette. It is purely a display/rendering change
+      or GPUCompiler. It is purely a display/rendering change
       for the Markdown stdlib.
 
       The only potential breakage is for code that:

@@ -483,7 +483,7 @@ analysis:
     - "Should REPL.banner signature change be documented as breaking in release notes?"
 
   recommendations:
-    - "No action required for downstream compiler-related packages (JET, Enzyme, IRTools, etc.)"
+    - "No action required for downstream compiler-related packages (JET, Enzyme, etc.)"
     - "Packages or scripts calling REPL.banner() with positional Symbol argument need to update to keyword syntax"
     - "Users relying on --banner=tiny or --banner=narrow should use --banner=short instead"
     - "This change has no impact on compiler behavior, type inference, or code generation"
@@ -496,7 +496,7 @@ downstream_impact:
     - tool: "None affected (not a compiler change)"
       usage: |
         This PR changes REPL banner display, not compiler internals.
-        JET, IRTools, Cassette, Enzyme, GPUCompiler are unaffected.
+        JET, Enzyme, GPUCompiler are unaffected.
         Only code directly calling REPL.banner() with the old signature needs updates.
 
 additional_context:

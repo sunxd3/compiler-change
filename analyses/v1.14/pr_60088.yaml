@@ -401,8 +401,6 @@ downstream_package_impact:
   Enzyme_jl: "none - coverage is a codegen feature, does not affect differentiation"
   GPUCompiler: "none - coverage is a codegen feature, GPU code generation unaffected"
   JET: "none - coverage is orthogonal to static analysis"
-  IRTools: "none - coverage is a codegen feature, IR manipulation unaffected"
-  Cassette: "none - coverage is a codegen feature, code transformation unaffected"
 
 code_path_trace:
   tracked_path_cli_resolution:

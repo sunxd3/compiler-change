@@ -44,7 +44,6 @@ This directory contains detailed YAML analyses of compiler-related PRs that were
 Tools that may need updates for Julia 1.13:
 
 - **JET.jl**: Improved type inference from def-use fix
-- **IRTools.jl, Cassette.jl**: Test against new ccall IR shapes
 - **Mooncake.jl**: Validate type inference behavior
 
 See [`../../changelogs/v1.13-compiler-changelog.md`](../../changelogs/v1.13-compiler-changelog.md) for full changelog.

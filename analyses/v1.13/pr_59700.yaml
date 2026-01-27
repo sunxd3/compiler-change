@@ -392,7 +392,7 @@ analysis:
 
   recommendations:
     - "No action required for downstream compiler packages"
-    - "This PR has zero impact on JET, Enzyme, IRTools, GPUCompiler, or Cassette"
+    - "This PR has zero impact on JET, Enzyme, or GPUCompiler"
     - "LibGit2 users accessing diff.owner should update to not rely on this field"
 
 classification:
@@ -481,4 +481,4 @@ reviewer_notes: |
   - PR touches only stdlib/LibGit2/ files
   - No changes to Compiler/, JuliaLowering/, JuliaSyntax/, or src/
   - No effect on type inference, lowering, optimization, or codegen
-  - Zero impact on downstream compiler packages (JET, Enzyme, IRTools, GPUCompiler, Cassette)
+  - Zero impact on downstream compiler packages (JET, Enzyme, GPUCompiler)

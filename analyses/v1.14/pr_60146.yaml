@@ -283,13 +283,11 @@ downstream_impact:
   JET: "none"
   Enzyme: "none"
   GPUCompiler: "none"
-  IRTools: "none"
-  Cassette: "none"
   Turing: "none"
   summary: |
     This PR changes package loading infrastructure (base/loading.jl), not compiler internals.
     It should have no direct impact on compiler-related downstream packages like JET, Enzyme,
-    GPUCompiler, IRTools, or Cassette. These packages interact with the compiler pipeline
+    or GPUCompiler. These packages interact with the compiler pipeline
     (type inference, IR, codegen), not the package loading system.
 
     Packages that customize or extend Julia's package loading mechanism (like Pkg.jl or

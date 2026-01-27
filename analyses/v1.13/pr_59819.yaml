@@ -687,7 +687,7 @@ analysis:
 
   recommendations:
     - "No action required for compiler-focused downstream packages"
-    - "This PR has zero impact on JET, Enzyme, IRTools, GPUCompiler, or Cassette"
+    - "This PR has zero impact on JET, Enzyme, or GPUCompiler"
     - "Packages interacting with REPL history may want to review new History module API"
     - "OhMyREPL and similar packages may need updates to integrate with new search UI"
     - "Packages that extend internal _replace() should verify compatibility with new return values"

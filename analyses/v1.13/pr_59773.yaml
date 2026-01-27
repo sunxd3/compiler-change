@@ -321,7 +321,7 @@ downstream_impact:
   details: |
     This PR affects the low-level system image loading mechanism, which runs
     before any Julia code executes. Downstream packages like Turing.jl,
-    Enzyme.jl, GPUCompiler, JET, IRTools, and Cassette are not affected
+    Enzyme.jl, GPUCompiler, and JET are not affected
     because:
 
     1. The change is in C runtime code, not the Julia compiler

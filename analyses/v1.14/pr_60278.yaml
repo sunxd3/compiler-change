@@ -632,8 +632,6 @@ downstream_package_impact:
   Enzyme_jl: "none - NFC, no changes to GC behavior or API"
   GPUCompiler: "none - NFC, no changes to GC behavior or API"
   JET: "none - NFC, no changes to GC behavior or API"
-  IRTools: "none - NFC, no changes to GC behavior or API"
-  Cassette: "none - NFC, no changes to GC behavior or API"
 
 code_path_trace:
   function_relocation:

@@ -308,8 +308,6 @@ downstream_package_impact:
   Enzyme_jl: "none - not related to differentiation"
   GPUCompiler: "none - not related to GPU compilation"
   JET: "none - pure bugfix, no inference changes"
-  IRTools: "none - not related to IR manipulation"
-  Cassette: "none - not related to code transformation"
 
 code_path_trace:
   complex_hash_function:

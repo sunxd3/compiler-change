@@ -190,7 +190,7 @@ analysis:
             snippet: |
               # Tools that pattern match on IR should expect:
               # (call Base.cconvert %N %M) instead of (call top.getproperty ... :cconvert)
-              # This affects IRTools, Cassette, JET if they inspect @ccall lowering
+              # This affects JET if it inspects @ccall lowering
     behavioral:
       - summary: "No semantic change - @ccall still validates interpolated pointers and performs cconvert/unsafe_convert with identical runtime behavior"
         evidence:
@@ -240,7 +240,7 @@ analysis:
       - "IR test expectations updated; semantics of foreigncall sequence preserved"
       - "Refactoring replaces one AST construction method with another, no semantic changes"
   open_questions:
-    - "Do any downstream tools (IRTools, Cassette, JET) specifically pattern match on top.getproperty in @ccall IR?"
+    - "Do any downstream tools (JET) specifically pattern match on top.getproperty in @ccall IR?"
   recommendations:
     - "Downstream IR consumers should accept direct Base.cconvert/Base.unsafe_convert calls if they previously expected getproperty chains"
     - "Tools should not rely on statement count in @ccall IR as it may vary between Julia versions"

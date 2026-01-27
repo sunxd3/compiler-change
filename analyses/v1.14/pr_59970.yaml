@@ -239,8 +239,6 @@ analysis:
     generated_functions: "Not affected"
     world_age_invalidation: "Not affected"
     jet: "Not affected - does not interact with native debug info lookup"
-    irtools: "Not affected"
-    cassette: "Not affected"
     gpucompiler: "Not affected"
     enzyme: "Not affected"
 

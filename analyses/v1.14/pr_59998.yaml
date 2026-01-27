@@ -305,12 +305,6 @@ analysis:
     - package: "JET.jl"
       impact: "none"
       reason: "JET uses compiler internals for type inference, not path handling constants"
-    - package: "IRTools.jl"
-      impact: "none"
-      reason: "IRTools works with IR manipulation, unaffected by path constants"
-    - package: "Cassette.jl"
-      impact: "none"
-      reason: "Cassette uses compiler overdubbing, unaffected by path handling"
     - package: "GPUCompiler.jl"
       impact: "none"
       reason: "GPUCompiler focuses on codegen, not path resolution"
@@ -336,5 +330,5 @@ analysis:
     4. Base.DATAROOTDIR is a const defined in build_h.jl (Makefile:67) containing the relative
        path from BINDIR to the data root directory (typically "../share")
     5. The removal of Sys.BUILD_ROOT_PATH is a breaking change but no external usage was found
-    6. All downstream compiler tooling packages (JET, IRTools, Cassette, GPUCompiler, Enzyme)
+    6. All downstream compiler tooling packages (JET, GPUCompiler, Enzyme)
        are unaffected as they work with compiler internals, not path handling

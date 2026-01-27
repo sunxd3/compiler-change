@@ -383,8 +383,6 @@ downstream_package_impact:
   Enzyme_jl: "none - bug fix in lowering, does not affect differentiation"
   GPUCompiler: "none - bug fix in lowering, does not affect GPU code generation"
   JET: "none - bug fix in lowering, semantic analysis unaffected"
-  IRTools: "none - bug fix in lowering, IR manipulation unaffected"
-  Cassette: "none - bug fix in lowering, code transformation unaffected"
 
 code_path_trace:
   toplevel_preserving_check:

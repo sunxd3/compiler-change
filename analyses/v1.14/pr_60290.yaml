@@ -305,12 +305,6 @@ downstream_package_impact:
       JET reads inference results but does not construct Const/PartialStruct/etc directly
       from boot.jl definitions. JET imports these types from Core.Compiler and uses them
       for lattice operations, which are unaffected by this PR.
-  irtools:
-    affected: false
-    rationale: "IRTools operates on lowered IR, not inference lattice types."
-  cassette:
-    affected: false
-    rationale: "Cassette's overdubbing mechanism does not depend on inference lattice type construction."
 reviewer_notes:
   independent_verification: |
     Verified by checking out merge commit 649b6a3f715fc985e3089aded92e32f2c1ee4040 and examining:

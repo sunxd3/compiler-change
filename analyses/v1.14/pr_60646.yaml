@@ -95,8 +95,6 @@ analysis:
         affected_tools:
           - tool: "JET"
             usage: "JET inspects BindingInfo flags when rendering closure capture diagnostics in its inference error reports."
-          - tool: "IRTools"
-            usage: "IRTools examines closure field layouts derived from boxing decisions when reflecting on lowered code."
     behavioral:
       - change: "Captures of outer-scope locals mutated inside an inner closure remain boxed; regressions are covered by the new f_update_outer_capture test."
         evidence:

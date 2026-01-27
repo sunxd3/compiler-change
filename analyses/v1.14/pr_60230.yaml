@@ -619,8 +619,6 @@ downstream_package_impact:
   Enzyme_jl: "none - transparent JIT runtime fix, no Julia-level API changes"
   GPUCompiler: "none - transparent JIT runtime fix, GPUCompiler uses its own codegen path"
   JET: "none - transparent JIT runtime fix, no compiler semantics changed"
-  IRTools: "none - transparent JIT runtime fix, no IR representation changes"
-  Cassette: "none - transparent JIT runtime fix, no compiler semantics changed"
 
 code_path_trace:
   cache_invalidation_fix:

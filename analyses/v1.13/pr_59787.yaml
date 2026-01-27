@@ -182,8 +182,6 @@ downstream_package_impact:
   Enzyme_jl: "none - documentation only"
   GPUCompiler: "none - documentation only"
   JET: "none - documentation only"
-  IRTools: "none - documentation only"
-  Cassette: "none - documentation only"
 
 code_path_trace:
   main_macro_invocation:

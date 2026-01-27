@@ -348,8 +348,6 @@ downstream_impact:
   enzyme: "none"
   gpucompiler: "none"
   jet: "none"
-  irtools: "none"
-  cassette: "none"
   turing: "none"
   summary: |
     This PR has no impact on downstream compiler tooling. It modifies only the low-level
@@ -358,7 +356,7 @@ downstream_impact:
     2. Runtime-only (no compiler, inference, or optimization changes)
     3. Internal implementation detail (API change is internal, not public Julia API)
 
-    Packages like Enzyme, GPUCompiler, JET, IRTools, Cassette, and Turing.jl do not
+    Packages like Enzyme, GPUCompiler, JET, and Turing.jl do not
     interact with these low-level signal handling internals and will not be affected.
 
 reviewer_notes:

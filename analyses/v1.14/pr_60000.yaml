@@ -590,7 +590,7 @@ notes: |
 
   DOWNSTREAM IMPACT:
 
-  - JET, Enzyme, IRTools, GPUCompiler, Cassette: No direct impact
+  - JET, Enzyme, GPUCompiler: No direct impact
     These tools don't interact with precompilation orchestration directly.
 
   - Pkg.jl: Should verify error handling still works correctly

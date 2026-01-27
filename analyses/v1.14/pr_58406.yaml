@@ -279,7 +279,7 @@ analysis:
 
   recommendations:
     - "No action required for downstream compiler packages"
-    - "This PR has zero impact on JET, Enzyme, IRTools, GPUCompiler, or Cassette"
+    - "This PR has zero impact on JET, Enzyme, or GPUCompiler"
     - "Terminal applications may want to leverage new focus capabilities"
 
 classification:
@@ -366,7 +366,7 @@ reviewer_verification:
 
     Downstream impact assessment: CONFIRMED MINIMAL
     - This PR has ZERO impact on compiler internals
-    - No effect on JET, Enzyme, IRTools, GPUCompiler, or Cassette
+    - No effect on JET, Enzyme, or GPUCompiler
     - Only terminal applications that explicitly query focus capabilities would benefit
 
   accuracy_assessment:

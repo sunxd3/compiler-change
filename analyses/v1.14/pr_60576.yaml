@@ -369,13 +369,6 @@ downstream_impact:
     affected: false
     reason: "JET performs static analysis on inference results, not JIT output"
 
-  irtools:
-    affected: false
-    reason: "IRTools manipulates Julia IR, not LLVM linking internals"
-
-  cassette:
-    affected: false
-    reason: "Cassette uses overdubbing at Julia IR level, not JIT linking"
 
   turing:
     affected: false

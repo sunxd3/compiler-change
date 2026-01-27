@@ -362,7 +362,7 @@ analysis:
           -> _convert_closures K"local" branch: if is_boxed, emit Box allocation  [closure_conversion.jl:412-413]
           -> else if !binfo.is_always_defined, emit newvar  [closure_conversion.jl:414-415]
       downstream_surfaces:
-        - "IRTools/Lowering consumers that inspect isdefined/newvar patterns"
+        - "Lowering consumers that inspect isdefined/newvar patterns"
         - "JET/diagnostic tooling that flags boxed captures"
       likelihood: "medium"
       impact: "low"

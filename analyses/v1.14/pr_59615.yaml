@@ -379,8 +379,6 @@ analysis:
     internal_tools:
       - name: "JET.jl"
         impact: "None - pure runtime optimization"
-      - name: "IRTools.jl"
-        impact: "None - no IR shape change"
       - name: "GPUCompiler.jl"
         impact: "None - string operations typically not on GPU"
 

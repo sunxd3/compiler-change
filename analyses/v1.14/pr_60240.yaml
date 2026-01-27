@@ -461,7 +461,7 @@ analysis:
     - "Should prompt_ready_event be documented for external use, or remain internal?"
 
   recommendations:
-    - "No action required for downstream compiler packages (JET, Enzyme, IRTools, GPUCompiler, Cassette)"
+    - "No action required for downstream compiler packages (JET, Enzyme, GPUCompiler)"
     - "This PR has zero impact on compiler internals or optimization"
     - "Testing tools that interact with REPL could potentially leverage the new event mechanism"
 
@@ -600,11 +600,7 @@ reviewer_verification:
         impact: "None - does not interact with REPL internals"
       - package: "Enzyme.jl"
         impact: "None - does not interact with REPL internals"
-      - package: "IRTools.jl"
-        impact: "None - does not interact with REPL internals"
       - package: "GPUCompiler.jl"
-        impact: "None - does not interact with REPL internals"
-      - package: "Cassette.jl"
         impact: "None - does not interact with REPL internals"
 
     repl_adjacent_packages:

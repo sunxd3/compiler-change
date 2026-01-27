@@ -321,7 +321,7 @@ analysis:
         -> tests show added slot and copy in IR output  [closures_ir.jl:132-150, decls_ir.jl:265-293]
       downstream_surfaces:
         - "JuliaLowering IR snapshot tests"
-        - "Tooling that inspects JuliaLowering linear IR slots (IRTools-like consumers)"
+        - "Tooling that inspects JuliaLowering linear IR slots"
       likelihood: "high"
       impact: "low"
   compatibility:

@@ -181,7 +181,7 @@ analysis:
       - ". which" -> ", which" (punctuation)
 
       No functional code is modified, so downstream packages like Turing.jl, Enzyme.jl,
-      GPUCompiler, JET, IRTools, and Cassette are completely unaffected.
+      GPUCompiler, or JET are completely unaffected.
 
   test_analysis:
     tests_added: []

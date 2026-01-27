@@ -343,8 +343,6 @@ downstream_package_impact:
   Enzyme_jl: "none - transparent AOT compilation optimization, no runtime impact"
   GPUCompiler: "none - transparent AOT compilation optimization, no runtime impact"
   JET: "none - transparent AOT compilation optimization, no runtime impact"
-  IRTools: "none - transparent AOT compilation optimization, no runtime impact"
-  Cassette: "none - transparent AOT compilation optimization, no runtime impact"
 
 code_path_trace:
   jl_create_native_worlds_array:

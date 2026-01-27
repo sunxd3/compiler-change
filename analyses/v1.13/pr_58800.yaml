@@ -306,9 +306,8 @@ analysis:
         and has no documented API. Downstream packages that:
         - Use SubArray/view normally: No change
         - Extend SubArray types: Should continue to work as before
-        - Use IRTools/Cassette on SubArray code: May see different IR structure
 
-    - package: "IRTools, Cassette, JET (metaprogramming tools)"
+    - package: "JET (metaprogramming tools)"
       affected_api: "IR inspection of SubArray indexing"
       impact: "low"
       migration_path: "Update IR expectations if testing specific code shapes"

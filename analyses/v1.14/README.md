@@ -75,7 +75,6 @@ Tools that need updates for Julia 1.14:
 ### High Priority
 - **Enzyme.jl, GPUCompiler**: Verify JITLink compatibility and union codegen changes
 - **JET.jl**: Update for reduced Box allocations and new IR patterns from JuliaLowering
-- **IRTools.jl, Cassette.jl**: Test against new lowered IR shapes, especially for closures
 - **Mooncake.jl**: Review changes to Conditional/MustAlias construction (ssadef field)
 
 ### Medium Priority

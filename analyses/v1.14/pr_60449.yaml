@@ -263,7 +263,7 @@ analysis:
     - "Users on CentOS 7 or similar older Linux systems experiencing 'CXXABI_1.3.8 not found' errors with 7z should upgrade to 1.12.4+"
     - "CI systems experiencing mysterious precompilation timeouts (60+ min hangs) should upgrade to include this fix"
     - "Users running containerized Julia builds that strip system libstdc++ should upgrade"
-    - "No action needed for downstream compiler-dependent packages (JET, Enzyme, GPUCompiler, IRTools, Cassette)"
+    - "No action needed for downstream compiler-dependent packages (JET, Enzyme, GPUCompiler)"
     - "If stuck on 1.12.2/1.12.3, workaround: downgrade to 1.12.1 or install nightly with `julia +pr60419`"
 
 categorization:
@@ -278,7 +278,7 @@ categorization:
     This PR is a combined backport containing build system and REPL fixes only.
     It does not modify any compiler pipeline components (JuliaSyntax, JuliaLowering,
     Compiler/src/*, interpreter, codegen). Downstream packages that depend on
-    compiler internals (JET, Enzyme, IRTools, Cassette, GPUCompiler) are unaffected.
+    compiler internals (JET, Enzyme, GPUCompiler) are unaffected.
 
 reviewer_notes:
   reviewed_by: "second_analyst"

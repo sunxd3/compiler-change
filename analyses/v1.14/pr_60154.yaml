@@ -248,8 +248,6 @@ analysis:
       - field: "Compiler.anymap(f::Function, a::Vector{Any})"
         change: "Signature now uses Vector alias instead of Array{Any,1}; call sites continue passing Any[] vectors."
         affected_tools:
-          - tool: "IRTools"
-            usage: "May exercise Core.Compiler utilities during inference pipelines; anymap is a helper for argument list transformations."
     behavioral:
       - change: "IOStream.ios field and libdl callback signatures now show Vector{UInt8}/Vector{String} in reflection output."
         impact: "Low; runtime behavior unchanged because Vector is an alias for Array{T,1}."

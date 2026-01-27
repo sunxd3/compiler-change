@@ -524,7 +524,7 @@ downstream_impact:
   compiler_packages:
     - package: "None directly affected"
       impact: "none"
-      reason: "This is a Base runtime library change, not a compiler infrastructure change. No impact on JET, GPUCompiler, Enzyme, IRTools, or Cassette."
+      reason: "This is a Base runtime library change, not a compiler infrastructure change. No impact on JET, GPUCompiler, or Enzyme."
   general_packages:
     - package: "Pkg.jl"
       impact: "positive"

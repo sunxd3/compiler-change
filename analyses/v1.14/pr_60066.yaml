@@ -503,8 +503,6 @@ independent_review:
     JET: "No impact - JET does not interact with REPL history"
     Enzyme: "No impact - Enzyme does not interact with REPL history"
     GPUCompiler: "No impact - GPUCompiler does not interact with REPL history"
-    IRTools: "No impact - IRTools does not interact with REPL history"
-    Cassette: "No impact - Cassette does not interact with REPL history"
 
   conclusion: |
     The original analysis is accurate and comprehensive. This PR is a pure REPL

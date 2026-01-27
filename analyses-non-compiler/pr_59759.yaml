@@ -67,6 +67,4 @@ downstream_impact:
   enzyme_jl: "none"
   gpucompiler: "none"
   jet: "none"
-  irtools: "none"
-  cassette: "none"
   summary: "This is a CI infrastructure change only. It modifies the Buildkite branch reference for Julia 1.12 release CI jobs. There are no compiler changes, no semantic changes, and no impact on any downstream packages or tooling."

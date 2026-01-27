@@ -380,12 +380,6 @@ downstream_impact:
     - name: "JET.jl"
       impact: "none"
       rationale: "Static analysis does not depend on stack protection attributes"
-    - name: "IRTools.jl"
-      impact: "none"
-      rationale: "IR manipulation unaffected by this codegen change"
-    - name: "Cassette.jl"
-      impact: "none"
-      rationale: "Contextual dispatch mechanism unaffected"
 
   general_users:
     impact: "none"

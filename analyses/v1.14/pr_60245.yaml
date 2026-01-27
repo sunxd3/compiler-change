@@ -414,8 +414,6 @@ downstream_package_impact:
   Enzyme_jl: "none - transparent JIT bugfix, no API changes"
   GPUCompiler: "none - transparent JIT bugfix, no API changes"
   JET: "none - transparent JIT bugfix, no API changes"
-  IRTools: "none - transparent JIT bugfix, no API changes"
-  Cassette: "none - transparent JIT bugfix, no API changes"
 
 code_path_trace:
   memory_manager_selection:

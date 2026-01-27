@@ -761,8 +761,6 @@ downstream_package_impact:
   Enzyme_jl: "none - REPL feature does not affect differentiation"
   GPUCompiler: "none - REPL feature does not affect GPU compilation"
   JET: "none - REPL feature does not affect static analysis"
-  IRTools: "none - REPL feature does not affect IR manipulation"
-  Cassette: "none - REPL feature does not affect code transformation"
   OhMyREPL: |
     potential overlap - OhMyREPL provides similar syntax highlighting functionality.
     Users may choose to use built-in highlighting instead of OhMyREPL, or use OhMyREPL

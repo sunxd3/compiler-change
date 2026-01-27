@@ -319,7 +319,7 @@ analysis:
           cases, users wait up to 1 second instead of 100ms before recovery.
 
   downstream_package_impact:
-    - package: "Turing.jl, Enzyme.jl, GPUCompiler, JET, IRTools, Cassette"
+    - package: "Turing.jl, Enzyme.jl, GPUCompiler, JET"
       impact: "none"
       rationale: |
         These packages interact with Julia's compiler internals (type inference,

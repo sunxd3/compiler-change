@@ -229,7 +229,7 @@ analysis:
 
   recommendations:
     - "No action required for downstream compiler packages"
-    - "This PR has zero impact on JET, Enzyme, IRTools, GPUCompiler, or Cassette"
+    - "This PR has zero impact on JET, Enzyme, or GPUCompiler"
     - "Custom strided array implementers should review the new example for best practices"
 
 classification:

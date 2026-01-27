@@ -234,7 +234,7 @@ analysis:
   open_questions: []
 
   recommendations:
-    - "This PR has no impact on downstream compiler tooling (JET, Enzyme, GPUCompiler, IRTools, Cassette)"
+    - "This PR has no impact on downstream compiler tooling (JET, Enzyme, GPUCompiler)"
     - "Users of REPL history search will need to adjust to new mode> syntax"
 
 # Summary: This is a REPL stdlib UI change, NOT a compiler PR.

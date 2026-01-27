@@ -566,7 +566,7 @@ analysis:
       - "Static parameter shadowing rules relaxed compared to flisp, potentially allowing code that previously errored."
   open_questions:
     - "Should expr_compat_mode and hygiene exemptions for globals be completed to match flisp behavior, as noted in PR TODOs?"
-    - "Are downstream tools (JET, JETLS, IRTools) relying on the old LambdaBindingInfo per-lambda vinfo flags?"
+    - "Are downstream tools (JET, JETLS) relying on the old LambdaBindingInfo per-lambda vinfo flags?"
     - "The PR notes a desugaring bug where the same #self# binding is used for multiple methods - is this tracked separately?"
   recommendations:
     - "Audit downstream uses of BindingInfo/LambdaBindings in JuliaLowering to ensure external tooling reads flags from BindingInfo and uses locals_capt for capture status."

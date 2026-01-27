@@ -242,7 +242,7 @@ analysis:
     packages_affected: []
     summary: |
       This PR has NO impact on downstream compiler tooling packages (JET, Enzyme,
-      GPUCompiler, IRTools, Cassette, etc.). It only modifies the REPL's
+      GPUCompiler, etc.). It only modifies the REPL's
       tab-completion feature for LaTeX-style Unicode input. No compiler internals,
       IR formats, or APIs are affected.
 

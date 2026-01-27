@@ -192,7 +192,7 @@ analysis:
 
   recommendations:
     - "No action required for downstream compiler packages"
-    - "This PR has zero impact on JET, Enzyme, IRTools, GPUCompiler, or Cassette"
+    - "This PR has zero impact on JET, Enzyme, or GPUCompiler"
     - "OhMyREPL users may notice docstring prompts now have italic styling"
 
 classification:
@@ -261,4 +261,4 @@ reviewer_verification:
   conclusion: |
     The original analysis is accurate and complete. This PR is correctly classified
     as a cosmetic change with no compiler relevance. No action required for
-    downstream compiler-focused packages (JET, Enzyme, IRTools, GPUCompiler, Cassette).
+    downstream compiler-focused packages (JET, Enzyme, GPUCompiler).

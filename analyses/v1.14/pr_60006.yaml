@@ -153,7 +153,7 @@ analysis:
     notes: |
       This PR has NO downstream impact. It modifies only a test file in the REPL stdlib
       and does not change any compiler, runtime, or API behavior. Downstream packages
-      like Turing.jl, Enzyme.jl, GPUCompiler, JET, IRTools, or Cassette are completely
+      like Turing.jl, Enzyme.jl, GPUCompiler, or JET are completely
       unaffected.
 
   open_questions:

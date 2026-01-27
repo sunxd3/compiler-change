@@ -160,7 +160,7 @@ analysis:
       - field: "jl_op_suffix_char / Meta.is_op_suffix_char"
         change: "Behavior-only change: returns true for six additional Unicode suffix codepoints (U+1D45, U+1D4B, U+1DB2, U+02F1, U+02F2, U+2094)."
         affected_tools:
-          - tool: "MacroTools/IRTools-style metaprogramming"
+          - tool: "MacroTools-style metaprogramming"
             usage: "Tools that validate operator symbols via Meta.is_op_suffix_char will now accept the added suffixes."
     behavioral:
       - change: "Operators using ᵅ (\\^alpha), ᵋ (\\^epsilon), ᶲ (\\^ltphi), ˱ (\\_<), ˲ (\\_>), ₔ (\\_schwa) now parse as single operator symbols."

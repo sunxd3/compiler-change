@@ -406,8 +406,6 @@ downstream_package_impact:
   Enzyme_jl: "none - does not use GC extensions API"
   GPUCompiler: "none - does not use GC extensions API"
   JET: "none - does not use GC extensions API"
-  IRTools: "none - does not use GC extensions API"
-  Cassette: "none - does not use GC extensions API"
   GAP_jl: "updated - primary consumer, maintainer confirms no longer needed"
 
 code_path_trace:

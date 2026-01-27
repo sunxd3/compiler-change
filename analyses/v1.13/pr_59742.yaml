@@ -367,10 +367,6 @@ downstream_impact:
   compiler_packages:
     - package: "JET.jl"
       impact: "None - does not use documentation system internals"
-    - package: "IRTools.jl"
-      impact: "None - does not use documentation system internals"
-    - package: "Cassette.jl"
-      impact: "None - does not use documentation system internals"
     - package: "GPUCompiler.jl"
       impact: "None - does not use documentation system internals"
     - package: "Enzyme.jl"
@@ -399,7 +395,7 @@ summary: |
   6. @nospecialize annotation added to lookup_doc parameter
 
   This is a low-risk bug fix with good test coverage and no downstream impact
-  on compiler-related packages like JET, IRTools, Cassette, GPUCompiler, or Enzyme.
+  on compiler-related packages like JET, GPUCompiler, or Enzyme.
 
 reviewer_notes:
   verified_on: "2026-01-21"

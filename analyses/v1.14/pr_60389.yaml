@@ -217,8 +217,6 @@ analysis:
     world_age_invalidation: "not_affected"
     internal_api_consumers:
       JET: "not_affected"
-      IRTools: "not_affected"
-      Cassette: "not_affected"
       GPUCompiler: "not_affected"
       Enzyme: "not_affected"
 

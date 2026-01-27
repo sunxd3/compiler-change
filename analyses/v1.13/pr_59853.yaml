@@ -181,8 +181,8 @@ analysis:
   downstream_impact:
     affected_packages: []
     notes: |
-      This PR has zero impact on downstream packages like JET, IRTools, Enzyme,
-      GPUCompiler, or Cassette. The change is entirely within the REPL's visual
+      This PR has zero impact on downstream packages like JET, Enzyme,
+      or GPUCompiler. The change is entirely within the REPL's visual
       styling subsystem which provides bracket matching highlighting.
 
       No compiler internals, type inference, or code generation are affected.

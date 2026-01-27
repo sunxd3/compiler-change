@@ -416,7 +416,7 @@ analysis:
           -> let iteratef = iteratef [line 1580] prevents boxing captured iteratef across resumable task suspensions.
       downstream_surfaces:
         - "Core.Compiler inference for _apply_iterate"
-        - "JET/IRTools consumers of inference metadata (reduced heap pressure in analysis)"
+        - "JET consumers of inference metadata (reduced heap pressure in analysis)"
       likelihood: "medium"
       impact: "low"
     - effect: "SharedArrays creation avoids boxing of segment name and mode values in closures passed to remotecall/mmap helpers."

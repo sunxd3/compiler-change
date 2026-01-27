@@ -293,7 +293,7 @@ analysis:
 
         No API changes, no compiler changes, no type inference changes.
 
-    - package: "Turing.jl, Enzyme.jl, GPUCompiler, JET, IRTools, Cassette"
+    - package: "Turing.jl, Enzyme.jl, GPUCompiler, JET"
       impact: "none"
       rationale: |
         These packages interact with compiler internals (type inference,

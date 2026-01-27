@@ -204,5 +204,5 @@ analysis:
   open_questions:
     - "Should callable-struct enqueueing also cover OpaqueClosure or other StmtInfo kinds (noted TODO at typeinfer.jl:1511)?"
   recommendations:
-    - "Downstream tooling that inspects effects/nothrow flags (JET, IRTools) should validate diagnostics on code using invoke with CodeInstance."
+    - "Downstream tooling that inspects effects/nothrow flags (JET) should validate diagnostics on code using invoke with CodeInstance."
     - "Packages that construct callable structs and rely on invokelatest may see slightly different precompile coverage; consider re-running precompile tests."

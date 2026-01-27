@@ -239,7 +239,7 @@ analysis:
           -> lowered kwcall uses the transformed args in the emitted block  [src/julia-syntax.scm:1816-1818]
       downstream_surfaces:
         - "Broadcasted assignment lowering"
-        - "MacroTools/IRTools that inspect parser AST for kwcall/parameters"
+        - "MacroTools that inspect parser AST for kwcall/parameters"
       likelihood: "high"
       impact: "medium"
     - effect: "@artifact_str uses a stable world age captured at Artifacts.__init__, reducing accidental world-age shifts during precompile/invalidations."

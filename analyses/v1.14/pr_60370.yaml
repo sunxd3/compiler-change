@@ -199,7 +199,7 @@ analysis:
           -> Downstream packages must import from JuliaSyntax namespace
       downstream_surfaces:
         - "JuliaLowering internal consumers importing SyntaxGraph/SyntaxTree"
-        - "Downstream packages (IRTools/AST tooling) that used JuliaLowering.SyntaxTree"
+        - "Downstream packages (AST tooling) that used JuliaLowering.SyntaxTree"
         - "JuliaSyntax-based parsing utilities when running on 1.12+"
       likelihood: "high"
       impact: "low"

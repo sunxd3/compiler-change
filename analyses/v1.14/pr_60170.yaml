@@ -346,7 +346,7 @@ analysis:
       - "Macro name nodes are normalized earlier, which can break downstream SyntaxTree pattern matching in tooling that relied on K\"macro_name\"/StrMacroName/CmdMacroName nodes."
       - "Changes affect macro expansion hygiene and compat lowering paths that are widely exercised (macrocalls, @__dot__, @cmd)."
   open_questions:
-    - "Are there downstream packages (IRTools/CSTParser/JET extensions) that rely on K\"macro_name\" or Str/CmdMacroName nodes from JuliaLowering SyntaxTree output?"
+    - "Are there downstream packages (CSTParser/JET extensions) that rely on K\"macro_name\" or Str/CmdMacroName nodes from JuliaLowering SyntaxTree output?"
     - "Do any macro tooling paths rely on name strings without '@' (e.g., 'SyntaxTree' vs '@SyntaxTree') outside the updated helpers?"
   recommendations:
     - "Update downstream SyntaxTree visitors to treat macro names as K\"Identifier\" with '@' prefix, including dotted macro paths."

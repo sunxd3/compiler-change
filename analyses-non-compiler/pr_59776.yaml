@@ -90,7 +90,7 @@ analysis:
       - "This PR only modifies NEWS.md - no compiler or runtime code changes"
       - "The PR was reverted due to documentation formatting errors, not code issues"
       - "The underlying ISO week functions are stable and well-tested"
-      - "No impact on downstream compiler tooling (JET, IRTools, Enzyme, GPUCompiler)"
+      - "No impact on downstream compiler tooling (JET, Enzyme, GPUCompiler)"
   open_questions: []
   recommendations:
     - "This is a documentation-only PR that was reverted and later corrected in PR #59844."

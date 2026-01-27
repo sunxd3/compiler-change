@@ -340,11 +340,6 @@ downstream_package_impact:
         JET reads CodeInstance.inferred for analysis, which is not affected by
         the prototype resolution substitution.
 
-    irtools:
-      affected: "unlikely"
-      description: |
-        IRTools operates on IR representation, not compiled native code.
-        The substitution only affects which compiled function a prototype resolves to.
 
     gpucompiler:
       affected: "possible"

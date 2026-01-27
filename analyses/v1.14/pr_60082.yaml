@@ -169,8 +169,6 @@ downstream_package_impact:
   Enzyme_jl: "none"
   GPUCompiler: "none"
   JET: "none"
-  IRTools: "none"
-  Cassette: "none"
 
 reviewer_notes:
   reviewer: "automated_analysis"

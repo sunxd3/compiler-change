@@ -373,7 +373,7 @@ analysis:
   recommendations:
     - "No action required for downstream packages; this is transparent to Julia users and package authors"
     - "Downstream tools using LLVM C++ API directly (e.g., Enzyme, GPUCompiler at the native level) should ensure they also migrate away from typed pointer APIs if targeting LLVM 21+"
-    - "JET, IRTools, and Cassette are unaffected as they operate at the Julia IR level, not LLVM IR level"
+    - "JET is unaffected as it operates at the Julia IR level, not LLVM IR level"
   reviewer_notes:
     independent_verification: |
       Verified by checking out merge commit 32e1f4873e488e157daccf0c9a58ef04b8374b8d
